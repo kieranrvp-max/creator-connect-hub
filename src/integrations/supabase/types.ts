@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           id: string
           listing_id: string
+          paid_at: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           platform_fee: number
           preferred_date: string
@@ -36,6 +37,7 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id: string
+          paid_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           platform_fee?: number
           preferred_date: string
@@ -52,6 +54,7 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id?: string
+          paid_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           platform_fee?: number
           preferred_date?: string
@@ -168,7 +171,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      creator_date_taken: {
+        Args: { _date: string; _exclude?: string; _listing_id: string }
+        Returns: boolean
+      }
       is_listing_owner: { Args: { _listing_id: string }; Returns: boolean }
+      taken_dates: { Args: { _listing_id: string }; Returns: string[] }
     }
     Enums: {
       booking_status:
