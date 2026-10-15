@@ -37,7 +37,7 @@ function SponsorDashboard() {
   const onCancel = async (id: string) => {
     if (!confirm("Cancel this request? You'll get a full refund.")) return;
     const r = await cancel({ data: { bookingId: id } });
-    if ("error" in r) return toast.error(r.error);
+    if ("error" in r) { toast.error(r.error); return; }
     toast.success("Request cancelled and refunded");
     qc.invalidateQueries({ queryKey: ["bookings"] });
   };
