@@ -21,6 +21,7 @@ export type Database = {
           id: string
           listing_id: string
           paid_at: string | null
+          payment_env: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           platform_fee: number
           preferred_date: string
@@ -38,6 +39,7 @@ export type Database = {
           id?: string
           listing_id: string
           paid_at?: string | null
+          payment_env?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           platform_fee?: number
           preferred_date: string
@@ -55,6 +57,7 @@ export type Database = {
           id?: string
           listing_id?: string
           paid_at?: string | null
+          payment_env?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           platform_fee?: number
           preferred_date?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ADD COLUMN payment_env text CHECK (payment_env IN ('sandbox','live'));
