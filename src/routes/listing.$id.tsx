@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { calcFee, creatorShare, formatCount, formatGBP, listingQuery } from "@/lib/marketplace";
+import { creatorShare, formatCount, formatGBP, listingQuery } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/listing/$id")({
   head: () => ({
