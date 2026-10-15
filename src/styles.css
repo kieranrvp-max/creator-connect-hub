@@ -159,7 +159,7 @@
 }
 
 /* Marker-style highlight that sits behind the lower part of the text and wraps cleanly */
-@utility text-highlight {
+@utility marker-highlight {
   background-image: linear-gradient(transparent 58%, var(--highlight) 58%, var(--highlight) 92%, transparent 92%);
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
