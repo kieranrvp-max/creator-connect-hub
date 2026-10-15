@@ -18,10 +18,10 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Sign in — slot." },
-      { name: "description", content: "Sign in or create a creator or sponsor account on slot." },
-      { property: "og:title", content: "Sign in — slot." },
-      { property: "og:description", content: "Join slot. as a creator or sponsor." },
+      { title: "Sign in — Creator Connect" },
+      { name: "description", content: "Sign in or create a creator or sponsor account on Creator Connect" },
+      { property: "og:title", content: "Sign in — Creator Connect" },
+      { property: "og:description", content: "Join Creator Connect as a creator or sponsor." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -89,7 +89,7 @@ function AuthPage() {
 
   return (
     <main className="mx-auto flex max-w-md flex-col px-4 py-12">
-      <h1 className="text-4xl font-semibold">Welcome to slot<span className="text-primary">.</span></h1>
+      <h1 className="text-4xl font-semibold">Welcome to Creator Connect<span className="text-primary">.</span></h1>
       <p className="mt-2 text-muted-foreground">Book or sell micro-sponsorships in minutes.</p>
       <div className="mt-8 rounded-xl border bg-card p-6">
         {sent ? (

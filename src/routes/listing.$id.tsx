@@ -22,9 +22,9 @@ import { creatorShare, formatCount, formatGBP, listingQuery } from "@/lib/market
 export const Route = createFileRoute("/listing/$id")({
   head: () => ({
     meta: [
-      { title: "Sponsorship listing — slot." },
+      { title: "Sponsorship listing — Creator Connect" },
       { name: "description", content: "View audience metrics and ad specs, then book a sponsorship slot." },
-      { property: "og:title", content: "Sponsorship listing — slot." },
+      { property: "og:title", content: "Sponsorship listing — Creator Connect" },
       { property: "og:description", content: "View audience metrics and book a sponsorship slot." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

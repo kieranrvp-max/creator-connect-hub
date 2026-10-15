@@ -15,9 +15,9 @@ export const Route = createFileRoute("/checkout/return")({
   }),
   head: () => ({
     meta: [
-      { title: "Booking payment — slot." },
+      { title: "Booking payment — Creator Connect" },
       { name: "description", content: "Your sponsorship booking payment status." },
-      { property: "og:title", content: "Booking payment — slot." },
+      { property: "og:title", content: "Booking payment — Creator Connect" },
       { property: "og:description", content: "Your sponsorship booking payment status." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

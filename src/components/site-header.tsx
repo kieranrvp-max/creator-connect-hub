@@ -13,7 +13,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
         <Link to="/explore" className="font-display text-xl font-semibold">
-          slot<span className="text-primary">.</span>
+          Creator Connect<span className="text-primary">.</span>
         </Link>
         <nav className="flex items-center gap-4 overflow-x-auto">
           <Link to="/explore" className={linkCls} activeProps={activeCls}>Explore</Link>

@@ -24,9 +24,9 @@ import {
 export const Route = createFileRoute("/_authenticated/dashboard/creator")({
   head: () => ({
     meta: [
-      { title: "Creator dashboard — slot." },
+      { title: "Creator dashboard — Creator Connect" },
       { name: "description", content: "Manage your sponsorship listings, requests and payouts." },
-      { property: "og:title", content: "Creator dashboard — slot." },
+      { property: "og:title", content: "Creator dashboard — Creator Connect" },
       { property: "og:description", content: "Manage your sponsorship listings, requests and payouts." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

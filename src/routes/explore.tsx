@@ -12,9 +12,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const Route = createFileRoute("/explore")({
   head: () => ({
     meta: [
-      { title: "Explore creators — slot. micro-sponsorships" },
+      { title: "Explore creators — Creator Connect micro-sponsorships" },
       { name: "description", content: "Browse niche newsletters, podcasts and channels and book affordable sponsorship slots." },
-      { property: "og:title", content: "Explore creators — slot." },
+      { property: "og:title", content: "Explore creators — Creator Connect" },
       { property: "og:description", content: "Book fast, low-cost micro-sponsorships with niche creators." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
