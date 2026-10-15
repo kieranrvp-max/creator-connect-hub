@@ -80,7 +80,7 @@ function Explore() {
               <Label>Max price</Label>
               <span className="text-sm font-semibold">{formatGBP(maxPrice)}</span>
             </div>
-            <Slider min={50} max={MAX} step={10} value={[maxPrice]} onValueChange={(v) => setMaxPrice(v[0])} />
+            <Slider min={50} max={MAX} step={10} value={[maxPrice]} onValueChange={(v) => setMaxPrice(v[0] ?? MAX)} />
           </div>
           <Button variant="ghost" size="sm" onClick={() => { setChannel("all"); setNiche("all"); setMaxPrice(MAX); }}>
             Reset filters
