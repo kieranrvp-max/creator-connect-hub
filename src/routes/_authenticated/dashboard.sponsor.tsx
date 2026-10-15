@@ -1,5 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BookingEmbeddedCheckout } from "@/components/embedded-checkout";
+import { getStripeEnvironment } from "@/lib/stripe";
+import { resumeBookingCheckout } from "@/utils/payments.functions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,12 +30,26 @@ export const Route = createFileRoute("/_authenticated/dashboard/sponsor")({
 function SponsorDashboard() {
   const { user } = Route.useRouteContext();
   const { data: orders = [], isLoading } = useQuery(sponsorBookingsQuery(user.id));
-  const spent = orders.filter((b) => b.status !== "declined").reduce((s, b) => s + Number(b.total_amount), 0);
+  const qc = useQueryClient();
+  const resume = useServerFn(resumeBookingCheckout);
+  const [payId, setPayId] = useState<string | null>(null);
+  const fetchSecret = useCallback(async () => {
+    try {
+      const r = await resume({ data: { bookingId: payId!, environment: getStripeEnvironment() } });
+      if ("error" in r) throw new Error(r.error);
+      return r.clientSecret;
+    } catch (e) {
+      toast.error((e as Error).message);
+      setPayId(null);
+      throw e;
+    }
+  }, [payId, resume]);
+  const spent = orders.filter((b) => b.payment_status === "paid").reduce((s, b) => s + Number(b.total_amount), 0);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><p className="text-sm text-muted-foreground">Total committed · {formatGBP(spent)}</p><h1 className="text-4xl font-semibold">Your orders</h1></div>
+        <div><p className="text-sm text-muted-foreground">Total paid · {formatGBP(spent)}</p><h1 className="text-4xl font-semibold">Your orders</h1></div>
         <Button asChild><Link to="/explore">Find creators</Link></Button>
       </div>
       <div className="mt-8 overflow-x-auto rounded-xl border bg-card">
@@ -49,7 +70,15 @@ function SponsorDashboard() {
                   <TableCell>{formatDate(b.preferred_date)}</TableCell>
                   <TableCell className="max-w-[180px] truncate text-muted-foreground">{b.target_link}</TableCell>
                   <TableCell>{formatGBP(Number(b.total_amount))}</TableCell>
-                  <TableCell><StatusBadge status={b.status} /></TableCell>
+                  <TableCell>
+                    {b.payment_status === "unpaid" ? (
+                      <Button size="sm" variant="outline" onClick={() => setPayId(b.id)}>Pay now</Button>
+                    ) : b.payment_status === "refunded" ? (
+                      <span className="text-sm text-muted-foreground">Refunded</span>
+                    ) : (
+                      <StatusBadge status={b.status} />
+                    )}
+                  </TableCell>
                   <TableCell>{b.proof_url ? <a href={b.proof_url} target="_blank" rel="noreferrer" className="text-sm text-primary">View</a> : <span className="text-muted-foreground">—</span>}</TableCell>
                 </TableRow>
               ))}
@@ -57,6 +86,12 @@ function SponsorDashboard() {
           </Table>
         )}
       </div>
+      <Dialog open={!!payId} onOpenChange={(o) => { if (!o) { setPayId(null); qc.invalidateQueries({ queryKey: ["bookings"] }); } }}>
+        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
+          <DialogHeader><DialogTitle>Finish payment</DialogTitle></DialogHeader>
+          {payId && <BookingEmbeddedCheckout fetchSecret={fetchSecret} />}
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

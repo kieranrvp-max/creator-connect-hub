@@ -2,7 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, ExternalLink } from "lucide-react";
+import { Plus, ExternalLink, Banknote } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { getStripeEnvironment } from "@/lib/stripe";
+import { createPayoutOnboardingLink, declineAndRefundBooking, getPayoutStatus } from "@/utils/payments.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +67,16 @@ function CreatorView({ userId, name }: { userId: string; name: string | null }) 
   const { data: items = [], isLoading } = useQuery(creatorBookingsQuery(userId));
   const { data: myListings = [] } = useQuery(myListingsQuery(userId));
 
+  const decline = useServerFn(declineAndRefundBooking);
+  const declineM = useMutation({
+    mutationFn: async (id: string) => {
+      const r = await decline({ data: { bookingId: id, environment: getStripeEnvironment() } });
+      if ("error" in r) throw new Error(r.error);
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["bookings"] }); toast("Request declined and sponsor refunded"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const update = useMutation({
     mutationFn: async ({ id, ...patch }: { id: string; status: BookingStatus; proof_url?: string }) => {
       const { error } = await supabase.from("bookings").update(patch).eq("id", id);
@@ -87,6 +100,8 @@ function CreatorView({ userId, name }: { userId: string; name: string | null }) 
         <NewListingDialog userId={userId} />
       </div>
 
+      <PayoutsCard />
+
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <Summary label="Total earnings" value={formatGBP(earnings)} />
         <Summary label="Active bookings" value={String(active.length)} />
@@ -103,7 +118,7 @@ function CreatorView({ userId, name }: { userId: string; name: string | null }) 
           <TabsContent key={key} value={key} className="mt-4 space-y-3">
             {isLoading && <Skeleton className="h-28 rounded-xl" />}
             {!isLoading && list.length === 0 && <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">Nothing here yet.</p>}
-            {list.map((b) => <BookingRow key={b.id} b={b} onUpdate={(p) => update.mutate({ id: b.id, ...p })} />)}
+            {list.map((b) => <BookingRow key={b.id} b={b} onUpdate={(p) => (p.status === "declined" ? declineM.mutate(b.id) : update.mutate({ id: b.id, ...p }))} />)}
           </TabsContent>
         ))}
       </Tabs>
@@ -148,7 +163,7 @@ function BookingRow({ b, onUpdate }: { b: CreatorBooking; onUpdate: (p: { status
       <div className="flex gap-2">
         {b.status === "pending_approval" && (
           <>
-            <Button variant="outline" size="sm" onClick={() => onUpdate({ status: "declined" })}>Decline</Button>
+            <Button variant="outline" size="sm" onClick={() => { if (confirm("Decline this request and refund the sponsor?")) onUpdate({ status: "declined" }); }}>Decline & refund</Button>
             <Button size="sm" onClick={() => onUpdate({ status: "accepted" })}>Accept</Button>
           </>
         )}
@@ -234,5 +249,47 @@ function NewListingDialog({ userId }: { userId: string }) {
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function PayoutsCard() {
+  const status = useServerFn(getPayoutStatus);
+  const link = useServerFn(createPayoutOnboardingLink);
+  const q = useQuery({
+    queryKey: ["payout-status"],
+    queryFn: async () => {
+      const r = await status({ data: { environment: getStripeEnvironment() } });
+      if ("error" in r) throw new Error(r.error);
+      return r;
+    },
+  });
+  const connect = useMutation({
+    mutationFn: async () => {
+      const r = await link({ data: { environment: getStripeEnvironment(), returnUrl: window.location.origin } });
+      if ("error" in r) throw new Error(r.error);
+      return r.url;
+    },
+    onSuccess: (url) => { window.open(url, "_blank", "noopener"); toast("Finish setup in the new tab, then refresh this page."); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const s = q.data;
+  const ready = s?.ready;
+  return (
+    <div className="mt-6 flex flex-col gap-3 rounded-xl border bg-card p-5 sm:flex-row sm:items-center">
+      <Banknote className="size-6 text-primary" />
+      <div className="flex-1">
+        <p className="font-semibold">Payouts</p>
+        <p className="text-sm text-muted-foreground">
+          {q.isLoading ? "Checking…" : q.error ? q.error.message : ready ? "Connected — you'll receive 85% of each booking automatically." : s?.connected ? "Setup incomplete — finish verification to start taking bookings." : "Connect a payout account so sponsors can book and pay you."}
+        </p>
+      </div>
+      {!ready && !q.isLoading && (
+        <div className="flex gap-2">
+          {s?.connected && <Button variant="outline" size="sm" onClick={() => q.refetch()}>Refresh</Button>}
+          <Button size="sm" onClick={() => connect.mutate()} disabled={connect.isPending}>{s?.connected ? "Continue setup" : "Connect payouts"}</Button>
+        </div>
+      )}
+    </div>
   );
 }
