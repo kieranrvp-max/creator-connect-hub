@@ -10,33 +10,89 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as DashboardCreatorRouteImport } from './routes/dashboard.creator'
+import { Route as DashboardSponsorRouteImport } from './routes/dashboard.sponsor'
+import { Route as ListingIdRouteImport } from './routes/listing.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardCreatorRoute = DashboardCreatorRouteImport.update({
+  id: '/dashboard/creator',
+  path: '/dashboard/creator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardSponsorRoute = DashboardSponsorRouteImport.update({
+  id: '/dashboard/sponsor',
+  path: '/dashboard/sponsor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListingIdRoute = ListingIdRouteImport.update({
+  id: '/listing/$id',
+  path: '/listing/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
+  '/dashboard/creator': typeof DashboardCreatorRoute
+  '/dashboard/sponsor': typeof DashboardSponsorRoute
+  '/listing/$id': typeof ListingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
+  '/dashboard/creator': typeof DashboardCreatorRoute
+  '/dashboard/sponsor': typeof DashboardSponsorRoute
+  '/listing/$id': typeof ListingIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
+  '/dashboard/creator': typeof DashboardCreatorRoute
+  '/dashboard/sponsor': typeof DashboardSponsorRoute
+  '/listing/$id': typeof ListingIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/explore'
+    | '/dashboard/creator'
+    | '/dashboard/sponsor'
+    | '/listing/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/explore'
+    | '/dashboard/creator'
+    | '/dashboard/sponsor'
+    | '/listing/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/explore'
+    | '/dashboard/creator'
+    | '/dashboard/sponsor'
+    | '/listing/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ExploreRoute: typeof ExploreRoute
+  DashboardCreatorRoute: typeof DashboardCreatorRoute
+  DashboardSponsorRoute: typeof DashboardSponsorRoute
+  ListingIdRoute: typeof ListingIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +104,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/creator': {
+      id: '/dashboard/creator'
+      path: '/dashboard/creator'
+      fullPath: '/dashboard/creator'
+      preLoaderRoute: typeof DashboardCreatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/sponsor': {
+      id: '/dashboard/sponsor'
+      path: '/dashboard/sponsor'
+      fullPath: '/dashboard/sponsor'
+      preLoaderRoute: typeof DashboardSponsorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listing/$id': {
+      id: '/listing/$id'
+      path: '/listing/$id'
+      fullPath: '/listing/$id'
+      preLoaderRoute: typeof ListingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ExploreRoute: ExploreRoute,
+  DashboardCreatorRoute: DashboardCreatorRoute,
+  DashboardSponsorRoute: DashboardSponsorRoute,
+  ListingIdRoute: ListingIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
