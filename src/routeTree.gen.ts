@@ -10,12 +10,25 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
+import { Route as AuthenticatedDashboardCreatorRouteImport } from './routes/_authenticated/dashboard.creator'
+import { Route as AuthenticatedDashboardSponsorRouteImport } from './routes/_authenticated/dashboard.sponsor'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExploreRoute = ExploreRouteImport.update({
@@ -28,33 +41,77 @@ const ListingIdRoute = ListingIdRouteImport.update({
   path: '/listing/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardCreatorRoute =
+  AuthenticatedDashboardCreatorRouteImport.update({
+    id: '/dashboard/creator',
+    path: '/dashboard/creator',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardSponsorRoute =
+  AuthenticatedDashboardSponsorRouteImport.update({
+    id: '/dashboard/sponsor',
+    path: '/dashboard/sponsor',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/explore': typeof ExploreRoute
   '/listing/$id': typeof ListingIdRoute
+  '/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
+  '/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/explore': typeof ExploreRoute
   '/listing/$id': typeof ListingIdRoute
+  '/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
+  '/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/explore': typeof ExploreRoute
   '/listing/$id': typeof ListingIdRoute
+  '/_authenticated/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
+  '/_authenticated/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/explore' | '/listing/$id'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/explore'
+    | '/listing/$id'
+    | '/dashboard/creator'
+    | '/dashboard/sponsor'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/explore' | '/listing/$id'
-  id: '__root__' | '/' | '/explore' | '/listing/$id'
+  to:
+    | '/'
+    | '/auth'
+    | '/explore'
+    | '/listing/$id'
+    | '/dashboard/creator'
+    | '/dashboard/sponsor'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/explore'
+    | '/listing/$id'
+    | '/_authenticated/dashboard/creator'
+    | '/_authenticated/dashboard/sponsor'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   ExploreRoute: typeof ExploreRoute
   ListingIdRoute: typeof ListingIdRoute
 }
@@ -66,6 +123,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/explore': {
@@ -82,11 +153,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/creator': {
+      id: '/_authenticated/dashboard/creator'
+      path: '/dashboard/creator'
+      fullPath: '/dashboard/creator'
+      preLoaderRoute: typeof AuthenticatedDashboardCreatorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/sponsor': {
+      id: '/_authenticated/dashboard/sponsor'
+      path: '/dashboard/sponsor'
+      fullPath: '/dashboard/sponsor'
+      preLoaderRoute: typeof AuthenticatedDashboardSponsorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardCreatorRoute: typeof AuthenticatedDashboardCreatorRoute
+  AuthenticatedDashboardSponsorRoute: typeof AuthenticatedDashboardSponsorRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardCreatorRoute: AuthenticatedDashboardCreatorRoute,
+  AuthenticatedDashboardSponsorRoute: AuthenticatedDashboardSponsorRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   ExploreRoute: ExploreRoute,
   ListingIdRoute: ListingIdRoute,
 }
