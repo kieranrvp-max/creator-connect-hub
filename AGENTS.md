@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Architecture
+- Data access uses the browser Cloud client with RLS + TanStack Query options in `src/lib/marketplace.ts`; signed-in pages live under `src/routes/_authenticated/` (client-only gate) so sessions in localStorage work.
+- Booking price, platform fee and initial status are set by a database trigger, never trusted from the client; the UI mirrors the fee via `calcFee` for display only.
