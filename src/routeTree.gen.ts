@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
 import { Route as AuthenticatedDashboardCreatorRouteImport } from './routes/_authenticated/dashboard.creator'
@@ -38,6 +40,16 @@ const ExploreRoute = ExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
@@ -78,6 +90,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/explore': typeof ExploreRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
   '/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
@@ -89,6 +103,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/explore': typeof ExploreRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
   '/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
@@ -102,6 +118,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/explore': typeof ExploreRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
   '/_authenticated/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
@@ -115,6 +133,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/explore'
+    | '/reset-password'
+    | '/account'
     | '/checkout/return'
     | '/listing/$id'
     | '/dashboard/creator'
@@ -126,6 +146,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/explore'
+    | '/reset-password'
+    | '/account'
     | '/checkout/return'
     | '/listing/$id'
     | '/dashboard/creator'
@@ -138,6 +160,8 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/explore'
+    | '/reset-password'
+    | '/_authenticated/account'
     | '/checkout/return'
     | '/listing/$id'
     | '/_authenticated/dashboard/creator'
@@ -151,6 +175,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ExploreRoute: typeof ExploreRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ListingIdRoute: typeof ListingIdRoute
   ApiPublicJobsExpireRequestsRoute: typeof ApiPublicJobsExpireRequestsRoute
@@ -186,6 +211,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/explore'
       preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/checkout/return': {
       id: '/checkout/return'
@@ -233,11 +272,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedDashboardCreatorRoute: typeof AuthenticatedDashboardCreatorRoute
   AuthenticatedDashboardSponsorRoute: typeof AuthenticatedDashboardSponsorRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedDashboardCreatorRoute: AuthenticatedDashboardCreatorRoute,
   AuthenticatedDashboardSponsorRoute: AuthenticatedDashboardSponsorRoute,
 }
@@ -250,6 +291,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ExploreRoute: ExploreRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ListingIdRoute: ListingIdRoute,
   ApiPublicJobsExpireRequestsRoute: ApiPublicJobsExpireRequestsRoute,
