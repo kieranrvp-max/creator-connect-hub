@@ -9,10 +9,10 @@ export type UserType = Database["public"]["Enums"]["user_type"];
 export const CHANNELS: ChannelType[] = ["Newsletter", "Podcast", "YouTube", "Social Media"];
 export const NICHES = ["Tech", "Finance", "Lifestyle", "Design", "Health", "Gaming"];
 
-/** Platform fee charged to sponsors on top of the slot price. Mirrors the database trigger. */
-export const PLATFORM_FEE_RATE = 0.1;
+/** Platform fee taken from the creator's share; sponsor pays the listed price. Mirrors the database trigger. */
+export const PLATFORM_FEE_RATE = 0.15;
 export const calcFee = (price: number) => Math.round(price * PLATFORM_FEE_RATE * 100) / 100;
-export const calcTotal = (price: number) => price + calcFee(price);
+export const creatorShare = (price: number) => Math.round((price - calcFee(price)) * 100) / 100;
 
 export const formatGBP = (n: number) =>
   new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 2, minimumFractionDigits: 0 }).format(n);
