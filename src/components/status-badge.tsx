@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { BookingStatus } from "@/lib/mock-data";
+import type { BookingStatus } from "@/lib/marketplace";
 
 const map: Record<BookingStatus, { label: string; cls: string }> = {
   pending_approval: { label: "Pending", cls: "bg-warning/15 text-warning" },

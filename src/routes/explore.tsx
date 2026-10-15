@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/listing-card";
-import { CHANNELS, NICHES, listings, formatGBP } from "@/lib/mock-data";
+import { CHANNELS, NICHES, formatGBP, listingsQuery } from "@/lib/marketplace";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/explore")({
   head: () => ({
@@ -27,6 +29,7 @@ function Explore() {
   const [channel, setChannel] = useState("all");
   const [niche, setNiche] = useState("all");
   const [maxPrice, setMaxPrice] = useState(MAX);
+  const { data: listings = [], isLoading } = useQuery(listingsQuery());
 
   const results = useMemo(
     () =>
@@ -34,9 +37,9 @@ function Explore() {
         (l) =>
           (channel === "all" || l.channel_type === channel) &&
           (niche === "all" || l.niche === niche) &&
-          l.price_per_slot <= maxPrice,
+          (maxPrice >= MAX || Number(l.price_per_slot) <= maxPrice),
       ),
-    [channel, niche, maxPrice],
+    [listings, channel, niche, maxPrice],
   );
 
   return (
@@ -78,7 +81,7 @@ function Explore() {
           <div className="space-y-3">
             <div className="flex justify-between">
               <Label>Max price</Label>
-              <span className="text-sm font-semibold">{formatGBP(maxPrice)}</span>
+              <span className="text-sm font-semibold">{maxPrice >= MAX ? "Any" : formatGBP(maxPrice)}</span>
             </div>
             <Slider min={50} max={MAX} step={10} value={[maxPrice]} onValueChange={(v) => setMaxPrice(v[0] ?? MAX)} />
           </div>
@@ -89,8 +92,12 @@ function Explore() {
 
         <section>
           <p className="mb-4 text-sm text-muted-foreground">{results.length} creators available</p>
-          {results.length === 0 ? (
-            <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">No creators match these filters.</div>
+          {isLoading ? (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-64 rounded-xl" />)}</div>
+          ) : results.length === 0 ? (
+            <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
+              {listings.length === 0 ? "No listings yet — creators, be the first to list a slot." : "No creators match these filters."}
+            </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {results.map((l) => <ListingCard key={l.id} listing={l} />)}
