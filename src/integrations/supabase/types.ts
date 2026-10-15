@@ -20,11 +20,13 @@ export type Database = {
           created_at: string
           id: string
           listing_id: string
+          payment_status: Database["public"]["Enums"]["payment_status"]
           platform_fee: number
           preferred_date: string
           proof_url: string | null
           sponsor_id: string
           status: Database["public"]["Enums"]["booking_status"]
+          stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string | null
           target_link: string
           total_amount: number
@@ -34,11 +36,13 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id: string
+          payment_status?: Database["public"]["Enums"]["payment_status"]
           platform_fee?: number
           preferred_date: string
           proof_url?: string | null
           sponsor_id?: string
           status?: Database["public"]["Enums"]["booking_status"]
+          stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           target_link: string
           total_amount?: number
@@ -48,11 +52,13 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id?: string
+          payment_status?: Database["public"]["Enums"]["payment_status"]
           platform_fee?: number
           preferred_date?: string
           proof_url?: string | null
           sponsor_id?: string
           status?: Database["public"]["Enums"]["booking_status"]
+          stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           target_link?: string
           total_amount?: number
@@ -172,6 +178,7 @@ export type Database = {
         | "completed"
         | "declined"
       channel_type: "Newsletter" | "Podcast" | "YouTube" | "Social Media"
+      payment_status: "unpaid" | "paid" | "refunded"
       user_type: "creator" | "sponsor"
     }
     CompositeTypes: {
@@ -308,6 +315,7 @@ export const Constants = {
         "declined",
       ],
       channel_type: ["Newsletter", "Podcast", "YouTube", "Social Media"],
+      payment_status: ["unpaid", "paid", "refunded"],
       user_type: ["creator", "sponsor"],
     },
   },
