@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BookingEmbeddedCheckout } from "@/components/embedded-checkout";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { resumeBookingCheckout } from "@/utils/payments.functions";
+import { cancelBookingAsSponsor, resumeBookingCheckout } from "@/utils/payments.functions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +33,14 @@ function SponsorDashboard() {
   const qc = useQueryClient();
   const resume = useServerFn(resumeBookingCheckout);
   const [payId, setPayId] = useState<string | null>(null);
+  const cancel = useServerFn(cancelBookingAsSponsor);
+  const onCancel = async (id: string) => {
+    if (!confirm("Cancel this request? You'll get a full refund.")) return;
+    const r = await cancel({ data: { bookingId: id } });
+    if ("error" in r) return toast.error(r.error);
+    toast.success("Request cancelled and refunded");
+    qc.invalidateQueries({ queryKey: ["bookings"] });
+  };
   const fetchSecret = useCallback(async () => {
     try {
       const r = await resume({ data: { bookingId: payId!, environment: getStripeEnvironment() } });
@@ -76,7 +84,12 @@ function SponsorDashboard() {
                     ) : b.payment_status === "refunded" ? (
                       <span className="text-sm text-muted-foreground">Refunded</span>
                     ) : (
-                      <StatusBadge status={b.status} />
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={b.status} />
+                        {b.status === "pending_approval" && (
+                          <Button size="sm" variant="ghost" onClick={() => onCancel(b.id)}>Cancel</Button>
+                        )}
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>{b.proof_url ? <a href={b.proof_url} target="_blank" rel="noreferrer" className="text-sm text-primary">View</a> : <span className="text-muted-foreground">—</span>}</TableCell>

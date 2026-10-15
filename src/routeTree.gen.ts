@@ -17,6 +17,7 @@ import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
 import { Route as AuthenticatedDashboardCreatorRouteImport } from './routes/_authenticated/dashboard.creator'
 import { Route as AuthenticatedDashboardSponsorRouteImport } from './routes/_authenticated/dashboard.sponsor'
+import { Route as ApiPublicJobsExpireRequestsRouteImport } from './routes/api/public/jobs/expire-requests'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -60,6 +61,12 @@ const AuthenticatedDashboardSponsorRoute =
     path: '/dashboard/sponsor',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicJobsExpireRequestsRoute =
+  ApiPublicJobsExpireRequestsRouteImport.update({
+    id: '/api/public/jobs/expire-requests',
+    path: '/api/public/jobs/expire-requests',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -75,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/listing/$id': typeof ListingIdRoute
   '/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
   '/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
+  '/api/public/jobs/expire-requests': typeof ApiPublicJobsExpireRequestsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +93,7 @@ export interface FileRoutesByTo {
   '/listing/$id': typeof ListingIdRoute
   '/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
   '/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
+  '/api/public/jobs/expire-requests': typeof ApiPublicJobsExpireRequestsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -97,6 +106,7 @@ export interface FileRoutesById {
   '/listing/$id': typeof ListingIdRoute
   '/_authenticated/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
   '/_authenticated/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
+  '/api/public/jobs/expire-requests': typeof ApiPublicJobsExpireRequestsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/listing/$id'
     | '/dashboard/creator'
     | '/dashboard/sponsor'
+    | '/api/public/jobs/expire-requests'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/listing/$id'
     | '/dashboard/creator'
     | '/dashboard/sponsor'
+    | '/api/public/jobs/expire-requests'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -130,6 +142,7 @@ export interface FileRouteTypes {
     | '/listing/$id'
     | '/_authenticated/dashboard/creator'
     | '/_authenticated/dashboard/sponsor'
+    | '/api/public/jobs/expire-requests'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -140,6 +153,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ListingIdRoute: typeof ListingIdRoute
+  ApiPublicJobsExpireRequestsRoute: typeof ApiPublicJobsExpireRequestsRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
@@ -201,6 +215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardSponsorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/jobs/expire-requests': {
+      id: '/api/public/jobs/expire-requests'
+      path: '/api/public/jobs/expire-requests'
+      fullPath: '/api/public/jobs/expire-requests'
+      preLoaderRoute: typeof ApiPublicJobsExpireRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -231,6 +252,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ListingIdRoute: ListingIdRoute,
+  ApiPublicJobsExpireRequestsRoute: ApiPublicJobsExpireRequestsRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport

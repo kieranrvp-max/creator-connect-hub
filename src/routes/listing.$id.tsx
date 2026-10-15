@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { BadgeCheck, ArrowLeft, ShieldCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BookingEmbeddedCheckout } from "@/components/embedded-checkout";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -39,6 +40,13 @@ function ListingPage() {
   const [copy, setCopy] = useState("");
   const [pending, setPending] = useState<{ preferredDate: string; adCopy: string; targetLink: string } | null>(null);
   const startCheckout = useServerFn(createBookingCheckout);
+  const { data: taken = [] } = useQuery({
+    queryKey: ["taken-dates", id],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("taken_dates", { _listing_id: id });
+      return (data ?? []) as string[];
+    },
+  });
 
   const fetchSecret = useCallback(async () => {
     if (!pending) throw new Error("No booking");
@@ -107,11 +115,14 @@ function ListingPage() {
             onSubmit={(e) => {
               e.preventDefault();
               const f = new FormData(e.currentTarget);
-              setPending({ preferredDate: String(f.get("date")), adCopy: copy.trim(), targetLink: String(f.get("url")) });
+              const date = String(f.get("date"));
+              if (taken.includes(date)) { toast.error("The creator is already booked on that date. Please pick another day."); return; }
+              setPending({ preferredDate: date, adCopy: copy.trim(), targetLink: String(f.get("url")) });
             }}
           >
             <h2 className="text-2xl font-semibold">Book this slot</h2>
-            <div className="space-y-2"><Label htmlFor="date">Launch date</Label><Input id="date" name="date" type="date" min={new Date().toISOString().slice(0, 10)} required /></div>
+            <div className="space-y-2"><Label htmlFor="date">Launch date</Label><Input id="date" name="date" type="date" min={new Date().toISOString().slice(0, 10)} required />
+              {taken.length > 0 && <p className="text-xs text-muted-foreground">Already booked: {taken.map((d) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" })).join(", ")}</p>}</div>
             <div className="space-y-2">
               <Label htmlFor="copy">Ad copy</Label>
               <Textarea id="copy" rows={5} required maxLength={2000} value={copy} onChange={(e) => setCopy(e.target.value)} placeholder="What should the creator say about you?" />
