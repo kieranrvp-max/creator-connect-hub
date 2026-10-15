@@ -1,4 +1,4 @@
 # Roadmap
-- [x] UI screens with mock data: Explore, Listing detail, Creator dashboard, Sponsor dashboard
-- [ ] Backend (Lovable Cloud): profiles, listings, bookings tables + RLS, auth
-- [ ] Stripe checkout + Connect payouts
+- [x] UI screens: Explore, Listing detail, Creator dashboard, Sponsor dashboard
+- [x] Backend: profiles, listings, bookings tables + RLS, auth, UI wired to real data
+- [ ] Stripe checkout + Connect payouts (waiting on user's payment choice)
