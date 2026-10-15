@@ -14,16 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          ad_copy: string
+          created_at: string
+          id: string
+          listing_id: string
+          platform_fee: number
+          preferred_date: string
+          proof_url: string | null
+          sponsor_id: string
+          status: Database["public"]["Enums"]["booking_status"]
+          stripe_payment_intent_id: string | null
+          target_link: string
+          total_amount: number
+        }
+        Insert: {
+          ad_copy: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          platform_fee?: number
+          preferred_date: string
+          proof_url?: string | null
+          sponsor_id?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          stripe_payment_intent_id?: string | null
+          target_link: string
+          total_amount?: number
+        }
+        Update: {
+          ad_copy?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          platform_fee?: number
+          preferred_date?: string
+          proof_url?: string | null
+          sponsor_id?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          stripe_payment_intent_id?: string | null
+          target_link?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listings: {
+        Row: {
+          ad_format: string | null
+          audience_size: number
+          avg_open_rate: number | null
+          channel_type: Database["public"]["Enums"]["channel_type"]
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          niche: string
+          price_per_slot: number
+          proof_screenshot_url: string | null
+          title: string
+        }
+        Insert: {
+          ad_format?: string | null
+          audience_size: number
+          avg_open_rate?: number | null
+          channel_type: Database["public"]["Enums"]["channel_type"]
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          niche: string
+          price_per_slot: number
+          proof_screenshot_url?: string | null
+          title: string
+        }
+        Update: {
+          ad_format?: string | null
+          audience_size?: number
+          avg_open_rate?: number | null
+          channel_type?: Database["public"]["Enums"]["channel_type"]
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          niche?: string
+          price_per_slot?: number
+          proof_screenshot_url?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          company_or_brand_name: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          stripe_connect_account_id: string | null
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          avatar_url?: string | null
+          company_or_brand_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          stripe_connect_account_id?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          avatar_url?: string | null
+          company_or_brand_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          stripe_connect_account_id?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_listing_owner: { Args: { _listing_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      booking_status:
+        | "pending_approval"
+        | "accepted"
+        | "published"
+        | "completed"
+        | "declined"
+      channel_type: "Newsletter" | "Podcast" | "YouTube" | "Social Media"
+      user_type: "creator" | "sponsor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +299,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      booking_status: [
+        "pending_approval",
+        "accepted",
+        "published",
+        "completed",
+        "declined",
+      ],
+      channel_type: ["Newsletter", "Podcast", "YouTube", "Social Media"],
+      user_type: ["creator", "sponsor"],
+    },
   },
 } as const
