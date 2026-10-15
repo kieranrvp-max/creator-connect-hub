@@ -16,9 +16,9 @@ import { formatDate, formatGBP, sponsorBookingsQuery } from "@/lib/marketplace";
 export const Route = createFileRoute("/_authenticated/dashboard/sponsor")({
   head: () => ({
     meta: [
-      { title: "Sponsor dashboard — slot." },
+      { title: "Sponsor dashboard — Creator Connect" },
       { name: "description", content: "Track your sponsorship orders and their status." },
-      { property: "og:title", content: "Sponsor dashboard — slot." },
+      { property: "og:title", content: "Sponsor dashboard — Creator Connect" },
       { property: "og:description", content: "Track your sponsorship orders and their status." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

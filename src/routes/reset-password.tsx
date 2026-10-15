@@ -9,10 +9,10 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Reset password — slot." },
-      { name: "description", content: "Choose a new password for your slot. account." },
-      { property: "og:title", content: "Reset password — slot." },
-      { property: "og:description", content: "Choose a new password for your slot. account." },
+      { title: "Reset password — Creator Connect" },
+      { name: "description", content: "Choose a new password for your Creator Connect account." },
+      { property: "og:title", content: "Reset password — Creator Connect" },
+      { property: "og:description", content: "Choose a new password for your Creator Connect account." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },

@@ -11,9 +11,9 @@ import { profileQuery } from "@/lib/marketplace";
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
     meta: [
-      { title: "Account settings — slot." },
+      { title: "Account settings — Creator Connect" },
       { name: "description", content: "Update your name, brand and account type." },
-      { property: "og:title", content: "Account settings — slot." },
+      { property: "og:title", content: "Account settings — Creator Connect" },
       { property: "og:description", content: "Update your name, brand and account type." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
