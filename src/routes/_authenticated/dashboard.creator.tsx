@@ -70,7 +70,7 @@ function CreatorView({ userId, name }: { userId: string; name: string | null }) 
   const decline = useServerFn(declineAndRefundBooking);
   const declineM = useMutation({
     mutationFn: async (id: string) => {
-      const r = await decline({ data: { bookingId: id, environment: getStripeEnvironment() } });
+      const r = await decline({ data: { bookingId: id } });
       if ("error" in r) throw new Error(r.error);
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["bookings"] }); toast("Request declined and sponsor refunded"); },

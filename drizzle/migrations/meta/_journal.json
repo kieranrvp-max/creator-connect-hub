@@ -15,6 +15,20 @@
       "when": 1792093892885,
       "tag": "0001_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792094362250,
+      "tag": "0002_booking_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792094379021,
+      "tag": "0003_booking_payment_env",
+      "breakpoints": true
     }
   ]
 }

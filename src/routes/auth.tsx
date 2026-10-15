@@ -75,6 +75,13 @@ function AuthPage() {
     else setSent(true);
   };
 
+  const forgot = async () => {
+    const email = (document.getElementById("si-email") as HTMLInputElement | null)?.value;
+    if (!email) { toast.error("Enter your email above first"); return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+    if (error) toast.error(error.message); else toast.success("Check your email for a reset link");
+  };
+
   const google = async () => {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth" });
     if (r.error) toast.error(r.error.message ?? "Google sign-in failed");
@@ -95,6 +102,7 @@ function AuthPage() {
                 <div className="space-y-2"><Label htmlFor="si-email">Email</Label><Input id="si-email" name="email" type="email" required /></div>
                 <div className="space-y-2"><Label htmlFor="si-pw">Password</Label><Input id="si-pw" name="password" type="password" required /></div>
                 <Button type="submit" className="w-full" disabled={busy}>Sign in</Button>
+                <button type="button" className="w-full text-center text-sm text-muted-foreground underline" onClick={forgot}>Forgot password?</button>
               </form>
             </TabsContent>
             <TabsContent value="signup">
