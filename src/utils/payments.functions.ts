@@ -207,7 +207,7 @@ export const getCheckoutResult = createServerFn({ method: "POST" })
       const paid = s.payment_status === "paid";
       if (paid && bookingId) {
         const { markBookingPaid } = await import("@/lib/bookings.server");
-        await markBookingPaid(bookingId, typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id ?? null);
+        await markBookingPaid(bookingId, typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id ?? null, data.environment);
       }
       return { paid, bookingId };
     } catch (e) {
@@ -219,27 +219,40 @@ export const getCheckoutResult = createServerFn({ method: "POST" })
 
 export const declineAndRefundBooking = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { bookingId: string; environment: StripeEnv }) => {
-    if (!isEnv(d.environment)) throw new Error("Invalid environment");
-    return d;
-  })
+  .inputValidator((d: { bookingId: string }) => d)
   .handler(async ({ data, context }): Promise<Result<{ ok: true }>> => {
     try {
       // RLS: creator can only read paid bookings on their own listings.
       const { data: b } = await context.supabase
         .from("bookings")
-        .select("id, status, payment_status, stripe_payment_intent_id, listing:listings!bookings_listing_id_fkey!inner(creator_id)")
+        .select("id, status, listing:listings!bookings_listing_id_fkey!inner(creator_id)")
         .eq("id", data.bookingId)
         .maybeSingle();
       if (!b || b.listing?.creator_id !== context.userId) return { error: "Booking not found" };
       if (b.status !== "pending_approval") return { error: "Only pending requests can be declined" };
+      const { refundAndClose } = await import("@/lib/bookings.server");
+      await refundAndClose(b.id);
+      return { ok: true };
+    } catch (e) {
+      return { error: getStripeErrorMessage(e) };
+    }
+  });
 
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      if (b.payment_status === "paid" && b.stripe_payment_intent_id) {
-        const stripe = createStripeClient(data.environment);
-        await stripe.refunds.create({ payment_intent: b.stripe_payment_intent_id, reverse_transfer: true, refund_application_fee: true });
-      }
-      await supabaseAdmin.from("bookings").update({ status: "declined", payment_status: b.payment_status === "paid" ? "refunded" : b.payment_status }).eq("id", b.id);
+export const cancelBookingAsSponsor = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { bookingId: string }) => d)
+  .handler(async ({ data, context }): Promise<Result<{ ok: true }>> => {
+    try {
+      const { data: b } = await context.supabase
+        .from("bookings")
+        .select("id, status, payment_status")
+        .eq("id", data.bookingId)
+        .eq("sponsor_id", context.userId)
+        .maybeSingle();
+      if (!b) return { error: "Booking not found" };
+      if (b.status !== "pending_approval") return { error: "This request was already accepted, so it can't be cancelled." };
+      const { refundAndClose } = await import("@/lib/bookings.server");
+      await refundAndClose(b.id);
       return { ok: true };
     } catch (e) {
       return { error: getStripeErrorMessage(e) };

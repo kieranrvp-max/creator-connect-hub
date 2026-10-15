@@ -3,15 +3,19 @@ import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
 
 async function handle(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
-  const { markBookingPaid, markBookingRefunded } = await import("@/lib/bookings.server");
+  const { markBookingPaid, markBookingRefunded, deleteUnpaidBySession } = await import("@/lib/bookings.server");
   const obj = event.data.object;
   switch (event.type) {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded": {
       const bookingId = obj.metadata?.bookingId;
       if (bookingId && obj.payment_status === "paid") {
-        await markBookingPaid(bookingId, typeof obj.payment_intent === "string" ? obj.payment_intent : null);
+        await markBookingPaid(bookingId, typeof obj.payment_intent === "string" ? obj.payment_intent : null, env);
       }
+      break;
+    }
+    case "checkout.session.expired": {
+      if (obj.id) await deleteUnpaidBySession(obj.id);
       break;
     }
     case "charge.refunded": {
