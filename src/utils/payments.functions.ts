@@ -96,7 +96,11 @@ export const createPayoutOnboardingLink = createServerFn({ method: "POST" })
       });
       return { url: link.url };
     } catch (e) {
-      return { error: getStripeErrorMessage(e) };
+      const msg = getStripeErrorMessage(e);
+      if (/signed up for Connect|unclaimed/i.test(msg)) {
+        return { error: "Creator payouts aren't switched on for this marketplace yet. The site owner needs to claim the payments account and enable Connect." };
+      }
+      return { error: msg };
     }
   });
 
