@@ -23,7 +23,7 @@ export function SiteHeader() {
   const { user, ready } = useAuth();
   const navigate = useNavigate();
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b bg-background">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
         <Link to="/explore" className="shrink-0 font-display text-xl font-semibold">
           Creator Connect<span className="text-primary">.</span>
