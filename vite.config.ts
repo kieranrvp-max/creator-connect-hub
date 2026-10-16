@@ -9,7 +9,7 @@ import { loadEnv } from "vite";
 import path from "node:path";
 
 // Server secrets stay in process.env, never in client-side define values.
-Object.assign(process.env, loadEnv(process.env.NODE_ENV === "production" ? "production" : "development", process.cwd(), ""));
+Object.assign(process.env, loadEnv(process.env['NODE_ENV'] === "production" ? "production" : "development", process.cwd(), ""));
 
 export default defineConfig({
   vite: {
