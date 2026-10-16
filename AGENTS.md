@@ -16,3 +16,5 @@
 - New and resumed sponsor checkouts share `SponsorshipBreakdown` so the included commission is displayed consistently without a surcharge.
 - Booking paid state is set by the signed webhook or the checkout-return verification (both call `markBookingPaid`, idempotent); never by the client.
 - An hourly managed schedule hits `/api/public/jobs/expire-requests` to auto-refund stale pending requests.
+
+- Authentication emails use the scaffolded managed handler under `/lovable/email/auth/`; keep all six actions and shared email-safe styles so branding stays consistent without custom delivery infrastructure.

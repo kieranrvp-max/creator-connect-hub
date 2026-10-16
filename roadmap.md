@@ -11,3 +11,5 @@
 - [ ] Creator payouts in test mode — blocked: owner must enable Connect in their own Stripe account and creators must reconnect payouts
 - [ ] Listing edit/delete UI (not yet requested)
 - [ ] Email notifications (user: not now)
+
+- [ ] Branded authentication emails and notify.creatorconnecthub.co.uk sender setup; sending awaits DNS verification and publishing.
