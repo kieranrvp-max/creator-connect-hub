@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
+import { bookingCharge } from "@/lib/checkout-charge";
 
 type Result<T> = T | { error: string };
 const isEnv = (e: unknown): e is StripeEnv => e === "sandbox" || e === "live";
@@ -133,7 +134,7 @@ export const createBookingCheckout = createServerFn({ method: "POST" })
       const acct = await stripe.accounts.retrieve(creator.stripe_connect_account_id);
       if (!acct.charges_enabled) return { error: "This creator's payout account isn't verified yet. Please try again later." };
 
-      // Insert as the sponsor (RLS); trigger sets price + 15% fee + pending/unpaid.
+      // Insert as the sponsor (RLS); trigger sets the listed total with an included 15% fee.
       const { data: booking, error: insErr } = await supabase
         .from("bookings")
         .insert({ listing_id: listing.id, sponsor_id: userId, ad_copy: data.adCopy.trim(), target_link: data.targetLink, preferred_date: data.preferredDate })
@@ -145,6 +146,8 @@ export const createBookingCheckout = createServerFn({ method: "POST" })
       const customerId = await resolveOrCreateCustomer(stripe, { email, userId });
       const origin = originOf(data.returnUrl);
       const description = `Sponsorship: ${listing.title}`;
+      const total = Number(booking.total_amount);
+      const fee = Number(booking.platform_fee);
 
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
@@ -153,13 +156,11 @@ export const createBookingCheckout = createServerFn({ method: "POST" })
         return_url: `${origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
         line_items: [{
           quantity: 1,
-          price_data: { currency: "gbp", unit_amount: toPence(Number(booking.total_amount)), product_data: { name: description } },
+          price_data: { currency: "gbp", unit_amount: toPence(total), product_data: { name: description, description: `Includes 15% Creator Connect platform fee (£${fee.toFixed(2)}). Creator share: £${(total - fee).toFixed(2)}. No additional platform fee.` } },
         }],
         payment_intent_data: {
+          ...bookingCharge(total, fee, creator.stripe_connect_account_id, booking.id, userId),
           description,
-          application_fee_amount: toPence(Number(booking.platform_fee)),
-          transfer_data: { destination: creator.stripe_connect_account_id },
-          metadata: { bookingId: booking.id, userId },
         },
         metadata: { bookingId: booking.id, userId },
         expires_at: Math.floor(Date.now() / 1000) + 60 * 60,

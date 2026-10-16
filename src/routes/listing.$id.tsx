@@ -7,6 +7,7 @@ import { BadgeCheck, ArrowLeft, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BookingEmbeddedCheckout } from "@/components/embedded-checkout";
+import { SponsorshipBreakdown } from "@/components/sponsorship-breakdown";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { createBookingCheckout } from "@/utils/payments.functions";
 import { useAuth } from "@/hooks/use-auth";
@@ -17,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { creatorShare, formatCount, formatGBP, listingQuery } from "@/lib/marketplace";
+import { formatCount, formatGBP, listingQuery } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/listing/$id")({
   head: () => ({
@@ -130,11 +131,7 @@ function ListingPage() {
             </div>
             <div className="space-y-2"><Label htmlFor="url">Destination URL</Label><Input id="url" name="url" type="url" required placeholder="https://" /></div>
             <Separator />
-            <div className="space-y-1 text-sm">
-              <Row label="Slot" value={formatGBP(price)} />
-              <div className="flex justify-between font-semibold"><span>You pay</span><span>{formatGBP(price)}</span></div>
-              <Row label="Creator receives (after 15% platform fee)" value={formatGBP(creatorShare(price))} />
-            </div>
+            <SponsorshipBreakdown total={price} />
             {!user ? (
               <Button asChild className="w-full" size="lg"><Link to="/auth" search={{ redirect: `/listing/${id}` }}>Sign in to book</Link></Button>
             ) : isOwn ? (
@@ -149,6 +146,7 @@ function ListingPage() {
       <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader><DialogTitle>Pay for your slot</DialogTitle></DialogHeader>
+          <SponsorshipBreakdown total={price} />
           {pending && <BookingEmbeddedCheckout fetchSecret={fetchSecret} />}
         </DialogContent>
       </Dialog>
@@ -158,7 +156,4 @@ function ListingPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return <div className="rounded-xl border bg-card p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-display text-2xl font-semibold">{value}</p></div>;
-}
-function Row({ label, value }: { label: string; value: string }) {
-  return <div className="flex justify-between text-muted-foreground"><span>{label}</span><span>{value}</span></div>;
 }

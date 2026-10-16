@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BookingEmbeddedCheckout } from "@/components/embedded-checkout";
+import { SponsorshipBreakdown } from "@/components/sponsorship-breakdown";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { cancelBookingAsSponsor, resumeBookingCheckout } from "@/utils/payments.functions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -42,8 +43,9 @@ function SponsorDashboard() {
     qc.invalidateQueries({ queryKey: ["bookings"] });
   };
   const fetchSecret = useCallback(async () => {
+    if (!payId) throw new Error("No booking selected");
     try {
-      const r = await resume({ data: { bookingId: payId!, environment: getStripeEnvironment() } });
+      const r = await resume({ data: { bookingId: payId, environment: getStripeEnvironment() } });
       if ("error" in r) throw new Error(r.error);
       return r.clientSecret;
     } catch (e) {
@@ -53,6 +55,7 @@ function SponsorDashboard() {
     }
   }, [payId, resume]);
   const spent = orders.filter((b) => b.payment_status === "paid").reduce((s, b) => s + Number(b.total_amount), 0);
+  const payingOrder = orders.find((b) => b.id === payId);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
@@ -102,6 +105,7 @@ function SponsorDashboard() {
       <Dialog open={!!payId} onOpenChange={(o) => { if (!o) { setPayId(null); qc.invalidateQueries({ queryKey: ["bookings"] }); } }}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader><DialogTitle>Finish payment</DialogTitle></DialogHeader>
+          {payingOrder && <SponsorshipBreakdown total={Number(payingOrder.total_amount)} fee={Number(payingOrder.platform_fee)} />}
           {payId && <BookingEmbeddedCheckout fetchSecret={fetchSecret} />}
         </DialogContent>
       </Dialog>
