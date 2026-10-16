@@ -130,10 +130,13 @@ function CreatorView({ userId, name }: { userId: string; name: string | null }) 
       ) : (
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {myListings.map((l) => (
-            <Link key={l.id} to="/listing/$id" params={{ id: l.id }} className="rounded-xl border bg-card p-4 hover:shadow-md">
-              <p className="font-semibold">{l.title}</p>
+            <div key={l.id} className="rounded-xl border bg-card p-4">
+              <Link to="/listing/$id" params={{ id: l.id }} className="block hover:underline">
+                <p className="font-semibold">{l.title}</p>
+              </Link>
               <p className="text-sm text-muted-foreground">{l.channel_type} · {l.niche} · {formatGBP(Number(l.price_per_slot))}</p>
-            </Link>
+              <PromoEditor listingId={l.id} current={l.promo_code} />
+            </div>
           ))}
         </div>
       )}
@@ -295,5 +298,30 @@ function PayoutsCard() {
         </div>
       )}
     </div>
+  );
+}
+
+function PromoEditor({ listingId, current }: { listingId: string; current: string | null }) {
+  const [code, setCode] = useState(current ?? "");
+  const qc = useQueryClient();
+  const save = useMutation({
+    mutationFn: async (value: string | null) => {
+      const { error } = await supabase.from("listings").update({ promo_code: value }).eq("id", listingId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, value) => {
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      qc.invalidateQueries({ queryKey: ["fee-rate", listingId] });
+      if (!value) setCode("");
+      toast.success(value ? `${value} applied — platform fee lowered on new bookings` : "Promo code removed");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); save.mutate(code.trim().toUpperCase() || null); }}>
+      <Input aria-label="Promo code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Promo code" maxLength={40} className="h-8 uppercase" />
+      <Button type="submit" size="sm" variant="secondary" disabled={save.isPending}>Apply</Button>
+      {current && <Button type="button" size="sm" variant="ghost" disabled={save.isPending} onClick={() => save.mutate(null)}>Remove</Button>}
+    </form>
   );
 }

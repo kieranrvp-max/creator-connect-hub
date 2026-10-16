@@ -16,4 +16,9 @@ describe("included sponsorship commission", () => {
   it("rounds a 15% commission to the nearest penny", () => {
     expect(bookingCharge(19.99, 3, "acct_creator", "booking", "sponsor").application_fee_amount).toBe(300);
   });
+  it("allows the EARLYBIRD 5% commission so the creator keeps £95 of £100", () => {
+    const charge = bookingCharge(100, 5, "acct_creator", "booking", "sponsor");
+    expect(charge.application_fee_amount).toBe(500);
+    expect(10000 - charge.application_fee_amount).toBe(9500);
+  });
 });
