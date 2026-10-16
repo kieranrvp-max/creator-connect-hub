@@ -165,3 +165,20 @@
   -webkit-box-decoration-break: clone;
   padding-inline: 0.08em;
 }
+
+:root {
+  --hero: oklch(0.17 0.05 295);
+  --hero-foreground: oklch(0.97 0.01 300);
+  --hero-muted: oklch(0.78 0.04 300);
+  --neon: oklch(0.7 0.25 330);
+  --gradient-banner: linear-gradient(90deg, var(--primary), var(--neon));
+  --gradient-hero: radial-gradient(ellipse at 20% 0%, oklch(0.45 0.22 300 / 55%), transparent 60%), radial-gradient(ellipse at 90% 80%, oklch(0.55 0.25 330 / 35%), transparent 55%), var(--hero);
+}
+@theme inline {
+  --color-hero: var(--hero);
+  --color-hero-foreground: var(--hero-foreground);
+  --color-hero-muted: var(--hero-muted);
+  --color-neon: var(--neon);
+}
+@utility bg-banner { background-image: var(--gradient-banner); }
+@utility bg-hero-glow { background: var(--gradient-hero); }
