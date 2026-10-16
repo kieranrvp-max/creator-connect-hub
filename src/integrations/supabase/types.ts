@@ -174,6 +174,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_profile: { Args: { _profile_id: string }; Returns: boolean }
       creator_date_taken: {
         Args: { _date: string; _exclude?: string; _listing_id: string }
         Returns: boolean
