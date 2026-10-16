@@ -80,7 +80,7 @@ export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ typ
   const body = await req.text();
   const secret = env === 'sandbox'
     ? getEnv('PAYMENTS_SANDBOX_WEBHOOK_SECRET')
-    : getEnv('PAYMENTS_LIVE_WEBHOOK_SECRET');
+    : (process.env.STRIPE_WEBHOOK_SECRET || getEnv('PAYMENTS_LIVE_WEBHOOK_SECRET'));
 
   if (!signature || !body) {
     throw new Error("Missing signature or body");
