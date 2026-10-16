@@ -127,6 +127,7 @@ const CREATOR_NOTES = [
     body: "Decline anything that isn't a fit, and only one paid booking per date — your audience never sees two ads on the same day.",
   },
 ];
+
 function StepList({ steps }: { steps: Step[] }) {
   return (
     <ol className="mt-10 grid gap-5 md:grid-cols-2">
