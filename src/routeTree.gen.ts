@@ -19,6 +19,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
+import { Route as OpportunityIdRouteImport } from './routes/opportunity.$id'
 import { Route as AuthenticatedDashboardCreatorRouteImport } from './routes/_authenticated/dashboard.creator'
 import { Route as AuthenticatedDashboardSponsorRouteImport } from './routes/_authenticated/dashboard.sponsor'
 import { Route as ApiPublicJobsExpireRequestsRouteImport } from './routes/api/public/jobs/expire-requests'
@@ -75,6 +76,11 @@ const ListingIdRoute = ListingIdRouteImport.update({
   path: '/listing/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OpportunityIdRoute = OpportunityIdRouteImport.update({
+  id: '/opportunity/$id',
+  path: '/opportunity/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedDashboardCreatorRoute =
   AuthenticatedDashboardCreatorRouteImport.update({
     id: '/dashboard/creator',
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
+  '/opportunity/$id': typeof OpportunityIdRoute
   '/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
   '/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
   '/api/public/jobs/expire-requests': typeof ApiPublicJobsExpireRequestsRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
+  '/opportunity/$id': typeof OpportunityIdRoute
   '/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
   '/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
   '/api/public/jobs/expire-requests': typeof ApiPublicJobsExpireRequestsRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
+  '/opportunity/$id': typeof OpportunityIdRoute
   '/_authenticated/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
   '/_authenticated/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
   '/api/public/jobs/expire-requests': typeof ApiPublicJobsExpireRequestsRoute
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/checkout/return'
     | '/listing/$id'
+    | '/opportunity/$id'
     | '/dashboard/creator'
     | '/dashboard/sponsor'
     | '/api/public/jobs/expire-requests'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/checkout/return'
     | '/listing/$id'
+    | '/opportunity/$id'
     | '/dashboard/creator'
     | '/dashboard/sponsor'
     | '/api/public/jobs/expire-requests'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/checkout/return'
     | '/listing/$id'
+    | '/opportunity/$id'
     | '/_authenticated/dashboard/creator'
     | '/_authenticated/dashboard/sponsor'
     | '/api/public/jobs/expire-requests'
@@ -228,6 +240,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ListingIdRoute: typeof ListingIdRoute
+  OpportunityIdRoute: typeof OpportunityIdRoute
   ApiPublicJobsExpireRequestsRoute: typeof ApiPublicJobsExpireRequestsRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/opportunity/$id': {
+      id: '/opportunity/$id'
+      path: '/opportunity/$id'
+      fullPath: '/opportunity/$id'
+      preLoaderRoute: typeof OpportunityIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/dashboard/creator': {
       id: '/_authenticated/dashboard/creator'
       path: '/dashboard/creator'
@@ -376,6 +396,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ListingIdRoute: ListingIdRoute,
+  OpportunityIdRoute: OpportunityIdRoute,
   ApiPublicJobsExpireRequestsRoute: ApiPublicJobsExpireRequestsRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
