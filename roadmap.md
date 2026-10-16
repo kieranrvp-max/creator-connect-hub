@@ -1,6 +1,6 @@
 # Roadmap
 - [x] How it works page (`/how-it-works`): sponsors + creators sections
-- [ ] Switch checkout, refunds and Connect to the owner's Stripe account — secret key saved; browser still loads a pk_test_ publishable key, awaiting pk_live_ + webhook setup
+- [ ] Switch checkout, refunds and Connect to the owner's Stripe account — secret key saved; live publishable key set; awaiting webhook signing secret
 - [x] Checkout warning banner removed from the top of the app
 - [x] UI screens, backend, auth, real data
 - [x] Stripe Checkout (15% fee from creator share) + Connect onboarding
