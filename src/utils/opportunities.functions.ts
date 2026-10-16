@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
 import { ALLOWED_FEE_RATES } from "@/lib/checkout-charge";
+import { untyped } from "@/lib/db-untyped";
 
 type Result<T> = T | { error: string };
 const isEnv = (e: unknown): e is StripeEnv => e === "sandbox" || e === "live";
@@ -14,14 +15,15 @@ function originOf(url: string) {
 }
 
 /** Loads an application the signed-in brand owns (RLS + explicit owner check). */
-async function ownedApplication(supabase: any, userId: string, id: string) {
-  const { data } = await supabase
+async function ownedApplication(supabase: unknown, userId: string, id: string) {
+  const { data } = await untyped(supabase)
     .from("opportunity_applications")
     .select("id, status, payment_status, stripe_checkout_session_id, creator_id, opportunity:opportunities!opportunity_applications_opportunity_id_fkey!inner(id, title, brand_id)")
     .eq("id", id)
     .maybeSingle();
-  if (!data || data.opportunity?.brand_id !== userId) return null;
-  return data;
+  const app = data as { id: string; status: string; payment_status: string; stripe_checkout_session_id: string | null; creator_id: string; opportunity: { id: string; title: string; brand_id: string } | null } | null;
+  if (!app?.opportunity || app.opportunity.brand_id !== userId) return null;
+  return { ...app, opportunity: app.opportunity };
 }
 
 /** Brand accepts a creator: funds escrow upfront through Stripe Checkout. */
@@ -51,8 +53,8 @@ export const acceptAndFundApplication = createServerFn({ method: "POST" })
       const acct = await stripe.accounts.retrieve(creator.stripe_connect_account_id);
       if (!acct.payouts_enabled) return { error: "This creator's payout account isn't verified yet." };
 
-      await supabaseAdmin.rpc("reprice_application", { _application_id: app.id });
-      const { data: priced } = await supabaseAdmin.from("opportunity_applications").select("total_amount, platform_fee").eq("id", app.id).single();
+      await untyped(supabaseAdmin).rpc("reprice_application", { _application_id: app.id });
+      const { data: priced } = await untyped(supabaseAdmin).from("opportunity_applications").select("total_amount, platform_fee").eq("id", app.id).single();
       const total = Number(priced?.total_amount);
       const fee = Number(priced?.platform_fee);
       const amount = Math.round(total * 100);
@@ -80,7 +82,7 @@ export const acceptAndFundApplication = createServerFn({ method: "POST" })
         metadata: { applicationId: app.id, userId: context.userId },
         expires_at: Math.floor(Date.now() / 1000) + 60 * 60,
       });
-      await supabaseAdmin.from("opportunity_applications").update({ stripe_checkout_session_id: session.id }).eq("id", app.id);
+      await untyped(supabaseAdmin).from("opportunity_applications").update({ stripe_checkout_session_id: session.id }).eq("id", app.id);
       return { clientSecret: session.client_secret ?? "" };
     } catch (e) {
       return { error: getStripeErrorMessage(e) };
