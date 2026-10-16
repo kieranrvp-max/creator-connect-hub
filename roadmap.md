@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Verify 15% included Stripe commission and show sponsor breakdown in new and resumed checkout.
 - [x] How it works page (`/how-it-works`): sponsors + creators sections
 - [ ] Switch checkout, refunds and Connect to the owner's Stripe account — secret key saved; live publishable key set; awaiting webhook signing secret
 - [x] Checkout warning banner removed from the top of the app
