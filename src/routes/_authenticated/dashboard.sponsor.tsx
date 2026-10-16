@@ -106,7 +106,7 @@ function SponsorDashboard() {
       <Dialog open={!!payId} onOpenChange={(o) => { if (!o) { setPayId(null); qc.invalidateQueries({ queryKey: ["bookings"] }); } }}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader><DialogTitle>Finish payment</DialogTitle></DialogHeader>
-          {payingOrder && <SponsorshipBreakdown total={Number(payingOrder.total_amount)} fee={Number(payingOrder.platform_fee)} />}
+          {payingOrder && <SponsorshipBreakdown total={Number(payingOrder.total_amount)} fee={Number(payingOrder.platform_fee)} promoCode={payingOrder.promo_code} />}
           {payId && <BookingEmbeddedCheckout fetchSecret={fetchSecret} />}
         </DialogContent>
       </Dialog>

@@ -212,6 +212,7 @@ function NewListingDialog({ userId }: { userId: string }) {
         ad_format: String(f.get("format") || "") || null,
         description: String(f.get("description") || "") || null,
         proof_screenshot_url: String(f.get("proof") || "") || null,
+        promo_code: String(f.get("promo") || "").trim().toUpperCase() || null,
       });
       if (error) throw error;
     },
@@ -246,6 +247,8 @@ function NewListingDialog({ userId }: { userId: string }) {
           <div className="space-y-2"><Label htmlFor="f">Ad format</Label><Input id="f" name="format" placeholder="100-word main sponsor section with 1 link" /></div>
           <div className="space-y-2"><Label htmlFor="d">Description</Label><Textarea id="d" name="description" rows={3} maxLength={1000} /></div>
           <div className="space-y-2"><Label htmlFor="s">Metrics proof link (optional)</Label><Input id="s" name="proof" type="url" placeholder="https:// screenshot of your analytics" /></div>
+          <div className="space-y-2"><Label htmlFor="promo">Promo code (optional)</Label><Input id="promo" name="promo" maxLength={40} placeholder="EARLYBIRD" className="uppercase" />
+            <p className="text-xs text-muted-foreground">EARLYBIRD lowers the platform fee to 5% so you keep 95% (first 10 bookings across Creator Connect).</p></div>
           <DialogFooter><Button type="submit" disabled={create.isPending}>{create.isPending ? "Saving…" : "Create listing"}</Button></DialogFooter>
         </form>
       </DialogContent>
