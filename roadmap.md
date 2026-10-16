@@ -1,4 +1,5 @@
 # Roadmap
+- [x] How it works page (`/how-it-works`): sponsors + creators sections
 - [ ] Switch checkout, refunds and Connect to the owner's Stripe account — secret key saved; awaiting matching publishable key and webhook setup
 - [x] UI screens, backend, auth, real data
 - [x] Stripe Checkout (15% fee from creator share) + Connect onboarding
