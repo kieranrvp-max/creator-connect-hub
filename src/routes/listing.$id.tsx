@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatCount, formatGBP, listingQuery } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/listing/$id")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Sponsorship listing — Creator Connect" },

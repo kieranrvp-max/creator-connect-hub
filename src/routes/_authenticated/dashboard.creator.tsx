@@ -22,6 +22,7 @@ import {
 } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/_authenticated/dashboard/creator")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Creator dashboard — Creator Connect" },

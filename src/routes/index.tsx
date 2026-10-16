@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Creator Connect — Micro-sponsorship marketplace" },

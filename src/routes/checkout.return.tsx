@@ -10,6 +10,7 @@ import { getStripeEnvironment } from "@/lib/stripe";
 import { getCheckoutResult } from "@/utils/payments.functions";
 
 export const Route = createFileRoute("/checkout/return")({
+  staticData: { sitemap: false },
   validateSearch: (s: Record<string, unknown>): { session_id?: string | undefined } => ({
     session_id: typeof s["session_id"] === "string" ? s["session_id"] : undefined,
   }),

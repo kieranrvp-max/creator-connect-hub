@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 type Search = { redirect?: string | undefined };
 
 export const Route = createFileRoute("/auth")({
+  staticData: { sitemap: false },
   validateSearch: (s: Record<string, unknown>): Search => ({
     redirect: typeof s["redirect"] === "string" && s["redirect"].startsWith("/") && !s["redirect"].startsWith("//") ? s["redirect"] : undefined,
   }),

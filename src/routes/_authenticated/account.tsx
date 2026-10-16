@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { profileQuery } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/_authenticated/account")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Account settings — Creator Connect" },

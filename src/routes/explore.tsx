@@ -10,6 +10,7 @@ import { CHANNELS, NICHES, formatGBP, listingsQuery } from "@/lib/marketplace";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/explore")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Explore creators — Creator Connect micro-sponsorships" },

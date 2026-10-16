@@ -21,6 +21,7 @@ const FEE_PCT = Math.round(PLATFORM_FEE_RATE * 100);
 const CREATOR_PCT = 100 - FEE_PCT;
 
 export const Route = createFileRoute("/how-it-works")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "How It Works — Creator Connect micro-sponsorships" },
