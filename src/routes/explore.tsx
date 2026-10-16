@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Megaphone, Radio } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,15 +7,22 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/listing-card";
-import { CHANNELS, NICHES, formatGBP, listingsQuery } from "@/lib/marketplace";
+import { CHANNELS, NICHES, formatGBP, listingsQuery, opportunitiesQuery } from "@/lib/marketplace";
+import { OpportunityCard } from "@/components/opportunity-card";
+import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+
+type Tab = "slots" | "opportunities";
 
 export const Route = createFileRoute("/explore")({
   staticData: { sitemap: true },
+  validateSearch: (s: Record<string, unknown>): { tab?: Tab | undefined } => ({
+    tab: s["tab"] === "opportunities" ? "opportunities" : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Explore creators — Creator Connect micro-sponsorships" },
-      { name: "description", content: "Browse niche newsletters, podcasts and channels and book affordable sponsorship slots." },
+      { name: "description", content: "Browse niche creator sponsorship slots and brand campaign opportunities." },
       { property: "og:title", content: "Explore creators — Creator Connect" },
       { property: "og:description", content: "Book fast, low-cost micro-sponsorships with niche creators." },
       { property: "og:type", content: "website" },
@@ -26,8 +33,70 @@ export const Route = createFileRoute("/explore")({
 });
 
 const MAX = 500;
+const BUDGET_MAX = 2000;
 
 function Explore() {
+  const { tab = "slots" } = Route.useSearch();
+  return (
+    <main>
+      <section className="relative overflow-hidden border-b" data-testid="explore-hero">
+        <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-highlight/40 blur-3xl" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 md:py-20 lg:grid-cols-[1.15fr_1fr]">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <p className="text-sm font-semibold uppercase tracking-widest text-primary">Micro-sponsorships</p>
+            <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-[1.05] md:text-6xl">
+              Connect directly with targeted <em className="marker-highlight not-italic">niche creators</em> for fast, low-cost sponsorships.
+            </h1>
+            <p className="mt-5 max-w-xl text-muted-foreground">
+              No agencies, no minimums. Pick a slot, send your copy, and go live within days.
+            </p>
+            <HeroCtas />
+          </div>
+          <HeroCollage />
+        </div>
+      </section>
+
+      <div id="listings" className="mx-auto max-w-6xl scroll-mt-28 px-4 pt-10 lg:scroll-mt-20">
+        <MarketTabs tab={tab} />
+      </div>
+      {tab === "slots" ? <SlotsPanel /> : <OpportunitiesPanel />}
+    </main>
+  );
+}
+
+function MarketTabs({ tab }: { tab: Tab }) {
+  const items = [
+    { key: "slots", label: "Explore Creator Slots", short: "Creator Slots", icon: Radio },
+    { key: "opportunities", label: "Explore Brand Opportunities", short: "Brand Opportunities", icon: Megaphone },
+  ] as const;
+  return (
+    <div className="grid w-full grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 backdrop-blur-xl sm:w-fit" role="tablist" data-testid="explore-tabs">
+      {items.map(({ key, label, short, icon: Icon }) => {
+        const active = tab === key;
+        return (
+          <Link
+            key={key}
+            to="/explore"
+            search={key === "slots" ? {} : { tab: key }}
+            hash="listings"
+            resetScroll={false}
+            role="tab"
+            aria-selected={active}
+            data-testid={`explore-tab-${key}`}
+            className={cn(
+              "flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold sm:px-4 transition-[background-color,color,box-shadow]",
+              active ? "bg-brand-gradient text-white shadow-lg shadow-[#A855F7]/30" : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+            )}
+          >
+            <Icon className="size-4 shrink-0" /> <span className="sm:hidden">{short}</span><span className="hidden sm:inline">{label}</span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+function SlotsPanel() {
   const [channel, setChannel] = useState("all");
   const [niche, setNiche] = useState("all");
   const [maxPrice, setMaxPrice] = useState(MAX);
@@ -45,74 +114,100 @@ function Explore() {
   );
 
   return (
-    <main>
-      <section className="relative overflow-hidden border-b" data-testid="home-hero">
-        <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-highlight/40 blur-3xl" />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 md:py-20 lg:grid-cols-[1.15fr_1fr]">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <p className="text-sm font-semibold uppercase tracking-widest text-primary">Micro-sponsorships</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-[1.05] md:text-6xl">
-              Connect directly with targeted <em className="marker-highlight not-italic">niche creators</em> for fast, low-cost sponsorships.
-            </h1>
-            <p className="mt-5 max-w-xl text-muted-foreground">
-              No agencies, no minimums. Pick a slot, send your copy, and go live within days.
-            </p>
-            <HeroCtas />
+    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[240px_1fr]" data-testid="slots-panel">
+      <aside className="space-y-6 lg:sticky lg:top-20 lg:self-start">
+        <FilterSelect label="Channel type" value={channel} onChange={setChannel} all="All channels" options={CHANNELS} testId="filter-channel" />
+        <FilterSelect label="Niche" value={niche} onChange={setNiche} all="All niches" options={NICHES} testId="filter-niche" />
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <Label>Max price</Label>
+            <span className="text-sm font-semibold">{maxPrice >= MAX ? "Any" : formatGBP(maxPrice)}</span>
           </div>
-          <HeroCollage />
+          <Slider min={50} max={MAX} step={10} value={[maxPrice]} onValueChange={(v) => setMaxPrice(v[0] ?? MAX)} data-testid="filter-max-price" />
         </div>
+        <Button variant="ghost" size="sm" data-testid="filter-reset-btn" onClick={() => { setChannel("all"); setNiche("all"); setMaxPrice(MAX); }}>
+          Reset filters
+        </Button>
+      </aside>
+
+      <section>
+        <p className="mb-4 text-sm text-muted-foreground">{results.length} {results.length === 1 ? "creator" : "creators"} available</p>
+        {isLoading ? (
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-64 rounded-xl" />)}</div>
+        ) : results.length === 0 ? (
+          <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
+            {listings.length === 0 ? "No listings yet — creators, be the first to list a slot." : "No creators match these filters."}
+          </div>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {results.map((l) => <ListingCard key={l.id} listing={l} />)}
+          </div>
+        )}
       </section>
+    </div>
+  );
+}
 
-      <div id="listings" className="mx-auto grid max-w-6xl scroll-mt-28 gap-8 lg:scroll-mt-20 px-4 py-10 lg:grid-cols-[240px_1fr]">
-        <aside className="space-y-6 lg:sticky lg:top-20 lg:self-start">
-          <div className="space-y-2">
-            <Label>Channel type</Label>
-            <Select value={channel} onValueChange={setChannel}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All channels</SelectItem>
-                {CHANNELS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
+function OpportunitiesPanel() {
+  const [niche, setNiche] = useState("all");
+  const [minBudget, setMinBudget] = useState(0);
+  const { data: opps = [], isLoading, error } = useQuery(opportunitiesQuery());
+  const results = useMemo(
+    () => opps.filter((o) => (niche === "all" || o.niche === niche) && Number(o.budget) >= minBudget),
+    [opps, niche, minBudget],
+  );
+
+  return (
+    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[240px_1fr]" data-testid="opportunities-panel">
+      <aside className="space-y-6 lg:sticky lg:top-20 lg:self-start">
+        <FilterSelect label="Niche" value={niche} onChange={setNiche} all="All niches" options={NICHES} testId="opp-filter-niche" />
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <Label>Min budget</Label>
+            <span className="text-sm font-semibold">{minBudget === 0 ? "Any" : formatGBP(minBudget)}</span>
           </div>
-          <div className="space-y-2">
-            <Label>Niche</Label>
-            <Select value={niche} onValueChange={setNiche}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All niches</SelectItem>
-                {NICHES.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <Label>Max price</Label>
-              <span className="text-sm font-semibold">{maxPrice >= MAX ? "Any" : formatGBP(maxPrice)}</span>
-            </div>
-            <Slider min={50} max={MAX} step={10} value={[maxPrice]} onValueChange={(v) => setMaxPrice(v[0] ?? MAX)} />
-          </div>
-          <Button variant="ghost" size="sm" onClick={() => { setChannel("all"); setNiche("all"); setMaxPrice(MAX); }}>
-            Reset filters
+          <Slider min={0} max={BUDGET_MAX} step={50} value={[minBudget]} onValueChange={(v) => setMinBudget(v[0] ?? 0)} data-testid="opp-filter-min-budget" />
+        </div>
+        <Button variant="ghost" size="sm" data-testid="opp-filter-reset-btn" onClick={() => { setNiche("all"); setMinBudget(0); }}>Reset filters</Button>
+        <div className="rounded-xl border border-[#EC4899]/25 bg-[#EC4899]/5 p-4 text-sm">
+          <p className="font-semibold">Are you a brand?</p>
+          <p className="mt-1 text-muted-foreground">Post a campaign brief and let creators pitch to you.</p>
+          <Button asChild size="sm" className="mt-3 border-0 bg-brand-gradient text-white" data-testid="opp-post-brief-btn">
+            <Link to="/dashboard/sponsor" search={{ tab: "campaigns" }}>Post a brief</Link>
           </Button>
-        </aside>
+        </div>
+      </aside>
 
-        <section>
-          <p className="mb-4 text-sm text-muted-foreground">{results.length} {results.length === 1 ? "creator" : "creators"} available</p>
-          {isLoading ? (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-64 rounded-xl" />)}</div>
-          ) : results.length === 0 ? (
-            <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-              {listings.length === 0 ? "No listings yet — creators, be the first to list a slot." : "No creators match these filters."}
-            </div>
-          ) : (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {results.map((l) => <ListingCard key={l.id} listing={l} />)}
-            </div>
-          )}
-        </section>
-      </div>
-    </main>
+      <section>
+        <p className="mb-4 text-sm text-muted-foreground" data-testid="opp-count">{results.length} {results.length === 1 ? "opportunity" : "opportunities"} open</p>
+        {isLoading ? (
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-64 rounded-xl" />)}</div>
+        ) : error || results.length === 0 ? (
+          <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground" data-testid="opp-empty">
+            {error ? "Brand opportunities are launching soon — check back shortly." : opps.length === 0 ? "No open briefs yet — brands, be the first to post one." : "No opportunities match these filters."}
+          </div>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {results.map((o) => <OpportunityCard key={o.id} o={o} />)}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function FilterSelect({ label, value, onChange, all, options, testId }: { label: string; value: string; onChange: (v: string) => void; all: string; options: readonly string[]; testId: string }) {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger data-testid={testId}><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{all}</SelectItem>
+          {options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 

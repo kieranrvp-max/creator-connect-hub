@@ -20,7 +20,7 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — Creator Connect" },
-      { name: "description", content: "Sign in or create a creator or sponsor account on Creator Connect" },
+      { name: "description", content: "Sign in or create a creator or brand account on Creator Connect" },
       { property: "og:title", content: "Sign in — Creator Connect" },
       { property: "og:description", content: "Join Creator Connect as a creator or sponsor." },
       { property: "og:type", content: "website" },
@@ -111,10 +111,11 @@ function AuthPage() {
                 <RadioGroup value={userType} onValueChange={(v) => setUserType(v as "creator" | "sponsor")} className="grid grid-cols-2 gap-2">
                   {(["sponsor", "creator"] as const).map((t) => (
                     <Label key={t} htmlFor={`t-${t}`} className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 has-[[data-state=checked]]:border-primary">
-                      <RadioGroupItem id={`t-${t}`} value={t} /> {t === "sponsor" ? "I'm a sponsor" : "I'm a creator"}
+                      <RadioGroupItem id={`t-${t}`} value={t} data-testid={`signup-role-${t}`} /> {t === "sponsor" ? "I'm a Brand / Business" : "I'm a Creator"}
                     </Label>
                   ))}
                 </RadioGroup>
+                <p className="text-xs text-muted-foreground">{userType === "creator" ? "Creators post sponsorship slots & media kit packages and pitch for brand briefs." : "Brands post campaign opportunities and book creator slots."} You can switch later in Account settings.</p>
                 <div className="space-y-2"><Label htmlFor="su-name">Full name</Label><Input id="su-name" name="name" required /></div>
                 <div className="space-y-2"><Label htmlFor="su-brand">{userType === "sponsor" ? "Company" : "Brand name"} (optional)</Label><Input id="su-brand" name="brand" /></div>
                 <div className="space-y-2"><Label htmlFor="su-email">Email</Label><Input id="su-email" name="email" type="email" required /></div>

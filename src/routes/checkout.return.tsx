@@ -42,7 +42,8 @@ function CheckoutReturn() {
       return r;
     },
   });
-  useEffect(() => { if (result.data?.paid) qc.invalidateQueries({ queryKey: ["bookings"] }); }, [result.data, qc]);
+  useEffect(() => { if (result.data?.paid) qc.invalidateQueries(); }, [result.data, qc]);
+  const isCampaign = !!result.data?.applicationId;
 
   const loading = !ready || result.isLoading;
   return (
@@ -55,7 +56,9 @@ function CheckoutReturn() {
         <>
           <CheckCircle2 className="mx-auto size-12 text-success" />
           <h1 className="mt-4 text-3xl font-semibold">Payment received</h1>
-          <p className="mt-2 text-muted-foreground">The creator has been notified and will accept or decline within 48 hours. If they decline, you're refunded in full.</p>
+          <p className="mt-2 text-muted-foreground">{isCampaign
+            ? "Funds are held securely in escrow. The creator has been hired and is paid once you approve their delivered work."
+            : "The creator has been notified and will accept or decline within 48 hours. If they decline, you're refunded in full."}</p>
         </>
       ) : (
         <>
@@ -64,7 +67,7 @@ function CheckoutReturn() {
           <p className="mt-2 text-muted-foreground">{result.error?.message ?? "You can finish paying from your orders page."}</p>
         </>
       )}
-      <Button asChild className="mt-8"><Link to="/dashboard/sponsor">Go to my orders</Link></Button>
+      <Button asChild className="mt-8"><Link to="/dashboard/sponsor" search={isCampaign ? { tab: "campaigns" } : {}}>{isCampaign ? "Go to my campaigns" : "Go to my orders"}</Link></Button>
     </main>
   );
 }

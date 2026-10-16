@@ -38,7 +38,7 @@ function ResetPassword() {
           setBusy(false);
           if (error) return void toast.error(error.message);
           toast.success("Password updated");
-          navigate({ to: "/explore" });
+          navigate({ to: "/" });
         }}
       >
         <div className="space-y-2"><Label htmlFor="pw">New password</Label><Input id="pw" name="pw" type="password" minLength={8} required /></div>
