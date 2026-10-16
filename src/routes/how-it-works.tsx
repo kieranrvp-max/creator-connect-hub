@@ -193,7 +193,7 @@ function HowItWorks() {
         </div>
       </section>
 
-      <section id="for-sponsors" className="scroll-mt-20 border-b">
+      <section id="for-sponsors" className="scroll-mt-32 border-b sm:scroll-mt-20">
         <div className="mx-auto max-w-6xl px-4 py-14 md:py-20">
           <p className="text-sm font-semibold uppercase tracking-widest text-primary">For brands &amp; sponsors</p>
           <h2 className="mt-3 max-w-2xl text-3xl font-semibold md:text-4xl">
