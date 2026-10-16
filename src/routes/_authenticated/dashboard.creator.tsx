@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, ExternalLink, Banknote } from "lucide-react";
+import { Plus, ExternalLink, Banknote, BadgeCheck } from "lucide-react";
+import { ApplicationBadge } from "@/components/application-badge";
 import { useServerFn } from "@tanstack/react-start";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { createPayoutOnboardingLink, declineAndRefundBooking, getPayoutStatus } from "@/utils/payments.functions";
@@ -17,9 +18,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/status-badge";
 import {
-  CHANNELS, NICHES, creatorBookingsQuery, formatDate, formatGBP, myListingsQuery, profileQuery,
+  CHANNELS, NICHES, creatorBookingsQuery, myApplicationsQuery, type CreatorApplication, formatDate, formatGBP, myListingsQuery, profileQuery,
   type BookingStatus, type ChannelType, type CreatorBooking,
 } from "@/lib/marketplace";
+import { untyped } from "@/lib/db-untyped";
 
 export const Route = createFileRoute("/_authenticated/dashboard/creator")({
   staticData: { sitemap: false },
@@ -54,9 +56,12 @@ function CreatorDashboard() {
   if (profile.data?.user_type !== "creator")
     return (
       <main className="mx-auto max-w-md px-4 py-20 text-center">
-        <h1 className="text-3xl font-semibold">You're signed up as a sponsor</h1>
-        <p className="mt-3 text-muted-foreground">Switch to a creator account to list sponsorship slots and receive bookings.</p>
-        <Button className="mt-6" onClick={() => becomeCreator.mutate()} disabled={becomeCreator.isPending}>Become a creator</Button>
+        <h1 className="text-3xl font-semibold">You're signed up as a Brand / Business</h1>
+        <p className="mt-3 text-muted-foreground">Only Creator accounts can post sponsorship slots. Brands post campaign briefs from the brand dashboard instead.</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <Button asChild variant="outline"><Link to="/dashboard/sponsor" search={{ tab: "campaigns" }}>Go to brand dashboard</Link></Button>
+          <Button onClick={() => becomeCreator.mutate()} disabled={becomeCreator.isPending} data-testid="become-creator-btn">Switch to Creator</Button>
+        </div>
       </main>
     );
 
@@ -102,6 +107,10 @@ function CreatorView({ userId, name }: { userId: string; name: string | null }) 
       </div>
 
       <PayoutsCard />
+      <Link to="/account" hash="integrations" className="mt-3 flex items-center gap-3 rounded-xl border border-[#A855F7]/25 bg-[#A855F7]/5 p-4 text-sm transition-colors hover:border-[#A855F7]/50" data-testid="creator-verify-socials-link">
+        <BadgeCheck className="size-5 text-[#EC4899]" />
+        <span className="flex-1"><span className="font-semibold">Integrations & Verification</span> — add your TikTok and Instagram stats so brands can see your reach.</span>
+      </Link>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <Summary label="Total earnings" value={formatGBP(earnings)} />
@@ -123,6 +132,8 @@ function CreatorView({ userId, name }: { userId: string; name: string | null }) 
           </TabsContent>
         ))}
       </Tabs>
+
+      <MyApplications userId={userId} />
 
       <h2 className="mt-12 text-2xl font-semibold">Your listings</h2>
       {myListings.length === 0 ? (
@@ -178,12 +189,12 @@ function BookingRow({ b, onUpdate }: { b: CreatorBooking; onUpdate: (p: { status
   );
 }
 
-function ProofDialog({ onSubmit }: { onSubmit: (url: string) => void }) {
+function ProofDialog({ onSubmit, label = "Submit proof" }: { onSubmit: (url: string) => void; label?: string }) {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm">Submit proof</Button></DialogTrigger>
+      <DialogTrigger asChild><Button size="sm" data-testid="proof-dialog-btn">{label}</Button></DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>Submit proof of publishing</DialogTitle></DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); onSubmit(url); setOpen(false); toast.success("Proof submitted"); }} className="space-y-4">
@@ -229,9 +240,9 @@ function NewListingDialog({ userId }: { userId: string }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button><Plus className="size-4" /> Add new listing</Button></DialogTrigger>
+      <DialogTrigger asChild><Button className="border-0 bg-brand-gradient text-white" data-testid="new-listing-btn"><Plus className="size-4" /> Add sponsorship slot</Button></DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>New listing</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>New sponsorship slot / media kit package</DialogTitle></DialogHeader>
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); create.mutate(new FormData(e.currentTarget)); }}>
           <div className="space-y-2"><Label htmlFor="t">Title</Label><Input id="t" name="title" required maxLength={120} placeholder="Weekly Tech Trends Newsletter" /></div>
           <div className="grid grid-cols-2 gap-3">
@@ -323,5 +334,51 @@ function PromoEditor({ listingId, current }: { listingId: string; current: strin
       <Button type="submit" size="sm" variant="secondary" disabled={save.isPending}>Apply</Button>
       {current && <Button type="button" size="sm" variant="ghost" disabled={save.isPending} onClick={() => save.mutate(null)}>Remove</Button>}
     </form>
+  );
+}
+
+function MyApplications({ userId }: { userId: string }) {
+  const { data: apps = [], isLoading, error } = useQuery(myApplicationsQuery(userId));
+  return (
+    <section className="mt-12" data-testid="creator-applications">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h2 className="text-2xl font-semibold">Brand campaign applications</h2>
+        <Button asChild size="sm" variant="outline"><Link to="/explore" search={{ tab: "opportunities" }} data-testid="creator-find-opps-btn">Find opportunities</Link></Button>
+      </div>
+      <div className="mt-4 space-y-3">
+        {isLoading && <Skeleton className="h-24 rounded-xl" />}
+        {!isLoading && (error || apps.length === 0) && (
+          <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">No applications yet. Pitch for a brand brief to get hired.</p>
+        )}
+        {apps.map((a) => <ApplicationRow key={a.id} a={a} />)}
+      </div>
+    </section>
+  );
+}
+
+function ApplicationRow({ a }: { a: CreatorApplication }) {
+  const qc = useQueryClient();
+  const deliver = useMutation({
+    mutationFn: async (url: string) => {
+      const { error } = await untyped(supabase).from("opportunity_applications").update({ status: "delivered", proof_url: url }).eq("id", a.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["applications"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const brand = a.opportunity?.brand?.company_or_brand_name || a.opportunity?.brand?.full_name || "Brand";
+  const share = Number(a.total_amount) - Number(a.platform_fee);
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border bg-card p-5 md:flex-row md:items-center" data-testid="creator-application-row">
+      <div className="flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          {a.opportunity && <Link to="/opportunity/$id" params={{ id: a.opportunity.id }} className="font-semibold hover:text-primary">{a.opportunity.title}</Link>}
+          <ApplicationBadge status={a.status} />
+        </div>
+        <p className="text-sm text-muted-foreground">{brand} · you earn {formatGBP(share)}{a.promo_code ? ` (${a.promo_code})` : ""}</p>
+        {a.proof_url && <a href={a.proof_url} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs text-primary">Your delivered work <ExternalLink className="size-3" /></a>}
+      </div>
+      {a.status === "accepted" && <ProofDialog label="Submit delivered work" onSubmit={(url) => deliver.mutate(url)} />}
+    </div>
   );
 }
