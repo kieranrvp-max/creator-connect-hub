@@ -36,6 +36,13 @@
       "when": 1792146387955,
       "tag": "0004_hide_profile_payout_ids",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792148566251,
+      "tag": "0005_restrict_sponsor_profiles",
+      "breakpoints": true
     }
   ]
 }
