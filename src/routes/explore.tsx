@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -45,19 +46,24 @@ function Explore() {
 
   return (
     <main>
-      <section className="border-b">
-        <div className="mx-auto max-w-6xl px-4 py-14 md:py-20">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Micro-sponsorships</p>
-          <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-[1.05] md:text-6xl">
-            Connect directly with targeted <em className="marker-highlight not-italic">niche creators</em> for fast, low-cost sponsorships.
-          </h1>
-          <p className="mt-5 max-w-xl text-muted-foreground">
-            No agencies, no minimums. Pick a slot, send your copy, and go live within days.
-          </p>
+      <section className="relative overflow-hidden border-b" data-testid="home-hero">
+        <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-highlight/40 blur-3xl" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 md:py-20 lg:grid-cols-[1.15fr_1fr]">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <p className="text-sm font-semibold uppercase tracking-widest text-primary">Micro-sponsorships</p>
+            <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-[1.05] md:text-6xl">
+              Connect directly with targeted <em className="marker-highlight not-italic">niche creators</em> for fast, low-cost sponsorships.
+            </h1>
+            <p className="mt-5 max-w-xl text-muted-foreground">
+              No agencies, no minimums. Pick a slot, send your copy, and go live within days.
+            </p>
+            <HeroCtas />
+          </div>
+          <HeroCollage />
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[240px_1fr]">
+      <div id="listings" className="mx-auto grid max-w-6xl scroll-mt-28 gap-8 lg:scroll-mt-20 px-4 py-10 lg:grid-cols-[240px_1fr]">
         <aside className="space-y-6 lg:sticky lg:top-20 lg:self-start">
           <div className="space-y-2">
             <Label>Channel type</Label>
@@ -92,7 +98,7 @@ function Explore() {
         </aside>
 
         <section>
-          <p className="mb-4 text-sm text-muted-foreground">{results.length} creators available</p>
+          <p className="mb-4 text-sm text-muted-foreground">{results.length} {results.length === 1 ? "creator" : "creators"} available</p>
           {isLoading ? (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-64 rounded-xl" />)}</div>
           ) : results.length === 0 ? (
@@ -107,5 +113,46 @@ function Explore() {
         </section>
       </div>
     </main>
+  );
+}
+
+const HERO_IMAGES = [
+  { src: "https://images.pexels.com/photos/5399014/pexels-photo-5399014.jpeg?auto=compress&cs=tinysrgb&w=900", alt: "Podcaster recording an episode at home", tag: "Podcasts" },
+  { src: "https://images.unsplash.com/photo-1664277497095-424e085175e8?auto=format&fit=crop&w=700&q=80", alt: "Video creator filming in a studio", tag: "Channels" },
+  { src: "https://images.unsplash.com/photo-1545239351-ef35f43d514b?auto=format&fit=crop&w=700&q=80", alt: "Writer drafting a newsletter on a laptop", tag: "Newsletters" },
+];
+
+function HeroCtas() {
+  return (
+    <div className="mt-8 flex flex-wrap items-center gap-3">
+      <Button asChild size="lg" className="group rounded-full px-6 shadow-lg shadow-primary/25 transition-transform hover:-translate-y-0.5" data-testid="hero-browse-creators-btn">
+        <a href="#listings">
+          Browse creators
+          <ArrowRight className="ml-1 size-4 transition-transform group-hover:translate-x-1" />
+        </a>
+      </Button>
+      <Button asChild size="lg" variant="outline" className="rounded-full px-6 transition-colors" data-testid="hero-list-slot-btn">
+        <Link to="/dashboard/creator">List your slot</Link>
+      </Button>
+    </div>
+  );
+}
+
+function HeroCollage() {
+  const [main, ...rest] = HERO_IMAGES;
+  return (
+    <div className="grid grid-cols-2 gap-3 animate-in fade-in zoom-in-95 duration-700" data-testid="hero-collage">
+      <HeroImage {...main!} className="row-span-2 h-full" />
+      {rest.map((img) => <HeroImage key={img.tag} {...img} className="aspect-square" />)}
+    </div>
+  );
+}
+
+function HeroImage({ src, alt, tag, className }: { src: string; alt: string; tag: string; className: string }) {
+  return (
+    <figure className={`group relative overflow-hidden rounded-2xl border bg-muted ${className}`}>
+      <img src={src} alt={alt} loading="eager" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+      <figcaption className="absolute bottom-3 left-3 rounded-full bg-background/85 px-3 py-1 text-xs font-semibold backdrop-blur">{tag}</figcaption>
+    </figure>
   );
 }
