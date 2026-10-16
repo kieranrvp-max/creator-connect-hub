@@ -50,6 +50,13 @@
       "when": 1792155069038,
       "tag": "0006_promo_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792200000000,
+      "tag": "0007_brand_opportunities",
+      "breakpoints": true
     }
   ]
 }
