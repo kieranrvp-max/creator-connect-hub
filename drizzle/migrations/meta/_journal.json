@@ -29,6 +29,13 @@
       "when": 1792094379021,
       "tag": "0003_booking_payment_env",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792146387955,
+      "tag": "0004_hide_profile_payout_ids",
+      "breakpoints": true
     }
   ]
 }
