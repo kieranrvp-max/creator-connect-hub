@@ -15,6 +15,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { formatDate, formatGBP, sponsorBookingsQuery } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/_authenticated/dashboard/sponsor")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Sponsor dashboard — Creator Connect" },
