@@ -2,7 +2,7 @@ import { formatGBP, PLATFORM_FEE_RATE } from "@/lib/marketplace";
 
 const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
 
-export function SponsorshipBreakdown({ total, fee, rate, promoCode }: { total: number; fee?: number; rate?: number; promoCode?: string | null }) {
+export function SponsorshipBreakdown({ total, fee, rate, promoCode }: { total: number; fee?: number | undefined; rate?: number | undefined; promoCode?: string | null | undefined }) {
   const r = rate ?? (fee !== undefined && total > 0 ? Math.round((fee / total) * 100) / 100 : PLATFORM_FEE_RATE);
   const f = fee ?? Math.round(total * r * 100) / 100;
   const discounted = r < PLATFORM_FEE_RATE;
