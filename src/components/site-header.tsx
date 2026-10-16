@@ -22,9 +22,9 @@ export function SiteHeader() {
           <Link to="/dashboard/sponsor" className={linkCls} activeProps={activeCls}>Sponsor</Link>
           {user && <Link to="/account" className={linkCls} activeProps={activeCls}>Account</Link>}
           {ready && (user ? (
-            <Button variant="ghost" size="sm" onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/explore" }); }}>Sign out</Button>
+            <Button variant="ghost" size="sm" className="shrink-0" onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/explore" }); }}>Sign out</Button>
           ) : (
-            <Button asChild size="sm"><Link to="/auth">Sign in</Link></Button>
+            <Button asChild size="sm" className="shrink-0"><Link to="/auth">Sign in</Link></Button>
           ))}
         </nav>
       </div>
