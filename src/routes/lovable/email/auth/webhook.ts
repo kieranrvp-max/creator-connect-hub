@@ -9,7 +9,7 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 // Configuration
-const SITE_NAME = "Connect Niche Craft"
+const SITE_NAME = "Creator Connect"
 const SENDER_DOMAIN = "notify.creatorconnecthub.co.uk"
 const ROOT_DOMAIN = "creatorconnecthub.co.uk"
 const FROM_DOMAIN = "creatorconnecthub.co.uk"
