@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
@@ -52,6 +53,11 @@ const HowItWorksRoute = HowItWorksRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/how-it-works': typeof HowItWorksRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/how-it-works': typeof HowItWorksRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/how-it-works': typeof HowItWorksRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/how-it-works'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/account'
     | '/checkout/return'
     | '/listing/$id'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/how-it-works'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/account'
     | '/checkout/return'
     | '/listing/$id'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/how-it-works'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/_authenticated/account'
     | '/checkout/return'
     | '/listing/$id'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   HowItWorksRoute: typeof HowItWorksRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ListingIdRoute: typeof ListingIdRoute
   ApiPublicJobsExpireRequestsRoute: typeof ApiPublicJobsExpireRequestsRoute
@@ -263,6 +276,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account': {
@@ -353,6 +373,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   HowItWorksRoute: HowItWorksRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ListingIdRoute: ListingIdRoute,
   ApiPublicJobsExpireRequestsRoute: ApiPublicJobsExpireRequestsRoute,
