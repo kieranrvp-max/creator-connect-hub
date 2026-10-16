@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SocialBadge, PLATFORM_LABEL } from "@/components/social-badges";
 import { socialAccountsQuery, type SocialAccount, type SocialPlatform } from "@/lib/marketplace";
+import { untyped } from "@/lib/db-untyped";
 
 const PLATFORMS: { key: SocialPlatform; icon: typeof Instagram }[] = [
   { key: "tiktok", icon: Music2 },
@@ -40,7 +41,7 @@ function PlatformCard({ platform, Icon, userId, current }: { platform: SocialPla
   const save = useMutation({
     mutationFn: async (f: FormData) => {
       const avg = String(f.get("avg") || "");
-      const { error } = await supabase.from("social_accounts").upsert(
+      const { error } = await untyped(supabase).from("social_accounts").upsert(
         { creator_id: userId, platform, handle: String(f.get("handle")).trim().replace(/^@/, ""), followers: Number(f.get("followers")), avg_views: avg ? Number(avg) : null },
         { onConflict: "creator_id,platform" },
       );
@@ -51,7 +52,7 @@ function PlatformCard({ platform, Icon, userId, current }: { platform: SocialPla
   });
   const remove = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("social_accounts").delete().eq("creator_id", userId).eq("platform", platform);
+      const { error } = await untyped(supabase).from("social_accounts").delete().eq("creator_id", userId).eq("platform", platform);
       if (error) throw error;
     },
     onSuccess: () => { done(); toast(`${name} removed`); },

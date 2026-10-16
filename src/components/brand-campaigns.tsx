@@ -19,6 +19,7 @@ import { SponsorshipBreakdown } from "@/components/sponsorship-breakdown";
 import { SocialBadges } from "@/components/social-badges";
 import { ApplicationBadge } from "@/components/application-badge";
 import { CHANNELS, NICHES, brandOpportunitiesQuery, formatGBP, type BrandApplication, type BrandOpportunity, type ChannelType } from "@/lib/marketplace";
+import { untyped } from "@/lib/db-untyped";
 
 export function BrandCampaigns({ userId }: { userId: string }) {
   const { data: opps = [], isLoading, error } = useQuery(brandOpportunitiesQuery(userId));
@@ -46,7 +47,7 @@ function OpportunityBlock({ o, onFund }: { o: BrandOpportunity; onFund: (a: Bran
   const qc = useQueryClient();
   const toggle = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("opportunities").update({ status: o.status === "open" ? "closed" : "open" }).eq("id", o.id);
+      const { error } = await untyped(supabase).from("opportunities").update({ status: o.status === "open" ? "closed" : "open" }).eq("id", o.id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["opportunities"] }),
@@ -81,7 +82,7 @@ function ApplicantRow({ a, onFund }: { a: BrandApplication; onFund: () => void }
   const run = useMutation({
     mutationFn: async (action: "decline" | "release" | "refund") => {
       if (action === "decline") {
-        const { error } = await supabase.from("opportunity_applications").update({ status: "declined" }).eq("id", a.id);
+        const { error } = await untyped(supabase).from("opportunity_applications").update({ status: "declined" }).eq("id", a.id);
         if (error) throw error;
         return "Application declined";
       }
@@ -158,7 +159,7 @@ function NewOpportunityDialog({ userId }: { userId: string }) {
   const qc = useQueryClient();
   const create = useMutation({
     mutationFn: async (f: FormData) => {
-      const { error } = await supabase.from("opportunities").insert({
+      const { error } = await untyped(supabase).from("opportunities").insert({
         brand_id: userId,
         title: String(f.get("title")).trim(),
         niche,
