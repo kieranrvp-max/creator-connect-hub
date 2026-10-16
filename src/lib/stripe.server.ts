@@ -19,6 +19,13 @@ export function getConnectionApiKey(env: StripeEnv): string {
 // Only api.stripe.com is proxied (not files.stripe.com or connect.stripe.com).
 export function createStripeClient(env: StripeEnv): Stripe {
   const connectionApiKey = getConnectionApiKey(env);
+  // A raw Stripe secret/restricted key talks to Stripe directly.
+  if (/^(sk|rk)_(live|test)_/.test(connectionApiKey)) {
+    return new Stripe(connectionApiKey, {
+      apiVersion: '2026-03-25.dahlia',
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+  }
   const lovableApiKey = getEnv('LOVABLE_API_KEY');
 
   return new Stripe(connectionApiKey, {
