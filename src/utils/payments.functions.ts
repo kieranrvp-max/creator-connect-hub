@@ -199,18 +199,24 @@ export const getCheckoutResult = createServerFn({ method: "POST" })
     if (!isEnv(d.environment) || !/^cs_[a-zA-Z0-9_]+$/.test(d.sessionId)) throw new Error("Invalid session");
     return d;
   })
-  .handler(async ({ data, context }): Promise<Result<{ paid: boolean; bookingId: string | null }>> => {
+  .handler(async ({ data, context }): Promise<Result<{ paid: boolean; bookingId: string | null; applicationId: string | null }>> => {
     try {
       const stripe = createStripeClient(data.environment);
       const s = await stripe.checkout.sessions.retrieve(data.sessionId);
       if (s.metadata?.["userId"] !== context.userId) return { error: "Not your checkout" };
       const bookingId = s.metadata?.["bookingId"] ?? null;
+      const applicationId = s.metadata?.["applicationId"] ?? null;
       const paid = s.payment_status === "paid";
+      const pi = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id ?? null;
       if (paid && bookingId) {
         const { markBookingPaid } = await import("@/lib/bookings.server");
-        await markBookingPaid(bookingId, typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id ?? null, data.environment);
+        await markBookingPaid(bookingId, pi, data.environment);
       }
-      return { paid, bookingId };
+      if (paid && applicationId) {
+        const { markApplicationPaid } = await import("@/lib/applications.server");
+        await markApplicationPaid(applicationId, pi, data.environment);
+      }
+      return { paid, bookingId, applicationId };
     } catch (e) {
       return { error: getStripeErrorMessage(e) };
     }
