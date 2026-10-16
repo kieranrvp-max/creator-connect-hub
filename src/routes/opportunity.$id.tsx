@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { SponsorshipBreakdown } from "@/components/sponsorship-breakdown";
 import { formatDate, formatGBP, myApplicationsQuery, opportunityQuery } from "@/lib/marketplace";
+import { untyped } from "@/lib/db-untyped";
 
 export const Route = createFileRoute("/opportunity/$id")({
   staticData: { sitemap: false },
@@ -123,7 +124,7 @@ function ApplyForm({ opportunityId, userId }: { opportunityId: string; userId: s
   const [link, setLink] = useState("");
   const apply = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("opportunity_applications").insert({
+      const { error } = await untyped(supabase).from("opportunity_applications").insert({
         opportunity_id: opportunityId,
         creator_id: userId,
         pitch: pitch.trim(),

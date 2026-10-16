@@ -84,7 +84,7 @@ function MarketTabs({ tab }: { tab: Tab }) {
             aria-selected={active}
             data-testid={`explore-tab-${key}`}
             className={cn(
-              "flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold sm:px-4 transition-[background-color,color,box-shadow]",
+              "flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-2 py-2.5 text-[13px] font-semibold sm:gap-2 sm:px-4 sm:text-sm transition-[background-color,color,box-shadow]",
               active ? "bg-brand-gradient text-white shadow-lg shadow-[#A855F7]/30" : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
             )}
           >
@@ -159,7 +159,7 @@ function OpportunitiesPanel() {
 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[240px_1fr]" data-testid="opportunities-panel">
-      <aside className="space-y-6 lg:sticky lg:top-20 lg:self-start">
+      <aside className="order-last space-y-6 lg:order-none lg:sticky lg:top-20 lg:self-start">
         <FilterSelect label="Niche" value={niche} onChange={setNiche} all="All niches" options={NICHES} testId="opp-filter-niche" />
         <div className="space-y-3">
           <div className="flex justify-between">
