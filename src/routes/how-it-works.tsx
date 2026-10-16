@@ -4,6 +4,7 @@ import {
   Banknote,
   CalendarCheck,
   Clock,
+  CreditCard,
   FileText,
   Link2,
   Megaphone,
@@ -57,7 +58,7 @@ const SPONSOR_STEPS: Step[] = [
     body: "Open a listing, pick a launch date, paste the ad copy and the link you want traffic to go to. That's the whole brief — no decks, no calls, no back-and-forth.",
   },
   {
-    icon: CreditCardLite,
+    icon: CreditCard,
     title: "Pay the price you saw",
     body: `Checkout is secure and takes a minute. You pay exactly the listed price — the platform's ${FEE_PCT}% comes out of the creator's share, never added on top of your total.`,
   },
