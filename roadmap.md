@@ -1,5 +1,6 @@
 # Roadmap
-- [ ] Verify 15% included Stripe commission and show sponsor breakdown in new and resumed checkout.
+- [x] Verify database-priced 15% included commission, validate Stripe application fee and show sponsor breakdown in new and resumed checkout (6 tests passed).
+- [ ] End-to-end commission payment verification — blocked: no preview users/listings; connected-account read declined, so Connect readiness is unverified.
 - [x] How it works page (`/how-it-works`): sponsors + creators sections
 - [ ] Switch checkout, refunds and Connect to the owner's Stripe account — secret key saved; live publishable key set; awaiting webhook signing secret
 - [x] Checkout warning banner removed from the top of the app
