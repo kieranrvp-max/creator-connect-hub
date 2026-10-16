@@ -1,9 +1,10 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { createStripeClient, type StripeEnv } from "@/lib/stripe.server";
+import { untyped } from "@/lib/db-untyped";
 
 /** Escrow funded: brand paid upfront, money held on the platform until release. Idempotent. */
 export async function markApplicationPaid(applicationId: string, paymentIntentId: string | null, env: StripeEnv) {
-  await supabaseAdmin
+  await untyped(supabaseAdmin)
     .from("opportunity_applications")
     .update({
       payment_status: "paid",
@@ -18,7 +19,7 @@ export async function markApplicationPaid(applicationId: string, paymentIntentId
 
 /** Releases the creator's share (total minus commission) from escrow to their Connect account. */
 export async function releaseApplication(applicationId: string) {
-  const { data: a } = await supabaseAdmin
+  const { data: a } = await untyped(supabaseAdmin)
     .from("opportunity_applications")
     .select("id, status, payment_status, payment_env, total_amount, platform_fee, stripe_payment_intent_id, creator_id")
     .eq("id", applicationId)
@@ -43,7 +44,7 @@ export async function releaseApplication(applicationId: string) {
     },
     { idempotencyKey: `release-${a.id}` },
   );
-  await supabaseAdmin
+  await untyped(supabaseAdmin)
     .from("opportunity_applications")
     .update({ status: "released", stripe_transfer_id: transfer.id, released_at: new Date().toISOString() })
     .eq("id", a.id);
@@ -51,7 +52,7 @@ export async function releaseApplication(applicationId: string) {
 
 /** Refunds a funded application that hasn't been released yet. */
 export async function refundApplication(applicationId: string) {
-  const { data: a } = await supabaseAdmin
+  const { data: a } = await untyped(supabaseAdmin)
     .from("opportunity_applications")
     .select("id, status, payment_status, payment_env, stripe_payment_intent_id")
     .eq("id", applicationId)
@@ -61,11 +62,11 @@ export async function refundApplication(applicationId: string) {
     const stripe = createStripeClient(a.payment_env as StripeEnv);
     await stripe.refunds.create({ payment_intent: a.stripe_payment_intent_id }, { idempotencyKey: `app-refund-${a.id}` });
   }
-  await supabaseAdmin.from("opportunity_applications").update({ status: "refunded", payment_status: "refunded" }).eq("id", a.id);
+  await untyped(supabaseAdmin).from("opportunity_applications").update({ status: "refunded", payment_status: "refunded" }).eq("id", a.id);
 }
 
 export async function markApplicationRefunded(paymentIntentId: string) {
-  await supabaseAdmin
+  await untyped(supabaseAdmin)
     .from("opportunity_applications")
     .update({ status: "refunded", payment_status: "refunded" })
     .eq("stripe_payment_intent_id", paymentIntentId)
@@ -74,7 +75,7 @@ export async function markApplicationRefunded(paymentIntentId: string) {
 }
 
 export async function clearApplicationSession(sessionId: string) {
-  await supabaseAdmin
+  await untyped(supabaseAdmin)
     .from("opportunity_applications")
     .update({ stripe_checkout_session_id: null })
     .eq("stripe_checkout_session_id", sessionId)

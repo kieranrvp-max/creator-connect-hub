@@ -1,13 +1,35 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { untyped } from "@/lib/db-untyped";
 
 export type ChannelType = Database["public"]["Enums"]["channel_type"];
 export type BookingStatus = Database["public"]["Enums"]["booking_status"];
 export type UserType = Database["public"]["Enums"]["user_type"];
-export type ApplicationStatus = Database["public"]["Enums"]["application_status"];
-export type SocialPlatform = Database["public"]["Enums"]["social_platform"];
-export type SocialAccount = Database["public"]["Tables"]["social_accounts"]["Row"];
+export type ApplicationStatus = "pending" | "accepted" | "delivered" | "released" | "declined" | "refunded";
+export type SocialPlatform = "tiktok" | "instagram";
+export type SocialAccount = {
+  id: string; creator_id: string; platform: SocialPlatform; handle: string; followers: number;
+  avg_views: number | null; verified: boolean; synced_at: string | null; created_at: string;
+};
+type ListingRow = Database["public"]["Tables"]["listings"]["Row"];
+type NameRef = { full_name: string | null; company_or_brand_name: string | null };
+type SocialSummary = Pick<SocialAccount, "platform" | "handle" | "followers" | "avg_views" | "verified">;
+export type ListingWithCreator = ListingRow & { creator: (NameRef & { socials: SocialSummary[] }) | null };
+export type Opportunity = {
+  id: string; brand_id: string; title: string; niche: string; channel_type: ChannelType | null; budget: number;
+  description: string | null; deliverables: string | null; deadline: string | null; status: "open" | "closed";
+  promo_code: string | null; created_at: string;
+};
+export type OpportunityWithBrand = Opportunity & { brand: NameRef | null };
+export type Application = {
+  id: string; opportunity_id: string; creator_id: string; pitch: string; portfolio_link: string | null;
+  status: ApplicationStatus; total_amount: number; platform_fee: number; promo_code: string | null;
+  payment_status: "unpaid" | "paid" | "refunded"; proof_url: string | null; created_at: string;
+};
+export type BrandApplication = Application & { creator: (NameRef & { socials: SocialSummary[] }) | null };
+export type BrandOpportunity = Opportunity & { applications: BrandApplication[] };
+export type CreatorApplication = Application & { opportunity: { id: string; title: string; budget: number; brand: NameRef | null } | null };
 
 export const ROLE_LABEL: Record<UserType, string> = { creator: "Creator", sponsor: "Brand / Business" };
 
@@ -27,28 +49,27 @@ export const formatDate = (d: string) => new Date(d).toLocaleDateString("en-GB",
 const LISTING_SELECT = "*, creator:profiles!listings_creator_id_fkey(full_name, company_or_brand_name, socials:social_accounts!social_accounts_creator_id_fkey(platform, handle, followers, avg_views, verified))";
 // Used until the social_accounts migration is applied.
 const LISTING_SELECT_BASIC = "*, creator:profiles!listings_creator_id_fkey(full_name, company_or_brand_name)";
-type SocialSummary = Pick<SocialAccount, "platform" | "handle" | "followers" | "avg_views" | "verified">;
+const withSocials = (l: ListingRow & { creator: NameRef | null }): ListingWithCreator => ({ ...l, creator: l.creator ? { ...l.creator, socials: [] } : null });
 
-async function fetchListings() {
-  const res = await supabase.from("listings").select(LISTING_SELECT).order("created_at", { ascending: false });
-  if (!res.error) return res.data;
+async function fetchListings(): Promise<ListingWithCreator[]> {
+  const res = await untyped(supabase).from("listings").select(LISTING_SELECT).order("created_at", { ascending: false });
+  if (!res.error) return res.data as ListingWithCreator[];
   const { data, error } = await supabase.from("listings").select(LISTING_SELECT_BASIC).order("created_at", { ascending: false });
   if (error) throw error;
-  return data.map((l) => ({ ...l, creator: l.creator ? { ...l.creator, socials: [] as SocialSummary[] } : null }));
+  return data.map(withSocials);
 }
-export type ListingWithCreator = Awaited<ReturnType<typeof fetchListings>>[number];
 
 export const listingsQuery = () => queryOptions({ queryKey: ["listings"], queryFn: fetchListings });
 
 export const listingQuery = (id: string) =>
   queryOptions({
     queryKey: ["listings", id],
-    queryFn: async () => {
-      const res = await supabase.from("listings").select(LISTING_SELECT).eq("id", id).maybeSingle();
-      if (!res.error) return res.data;
+    queryFn: async (): Promise<ListingWithCreator | null> => {
+      const res = await untyped(supabase).from("listings").select(LISTING_SELECT).eq("id", id).maybeSingle();
+      if (!res.error) return res.data as ListingWithCreator | null;
       const { data, error } = await supabase.from("listings").select(LISTING_SELECT_BASIC).eq("id", id).maybeSingle();
       if (error) throw error;
-      return data && { ...data, creator: data.creator ? { ...data.creator, socials: [] as SocialSummary[] } : null };
+      return data && withSocials(data);
     },
   });
 
@@ -107,24 +128,27 @@ export const profileQuery = (userId: string) =>
 
 /* ---------------- Brand opportunities ---------------- */
 
+const db = () => untyped(supabase);
 const OPP_SELECT = "*, brand:profiles!opportunities_brand_id_fkey(full_name, company_or_brand_name)";
 
-async function fetchOpportunities() {
-  const { data, error } = await supabase.from("opportunities").select(OPP_SELECT).eq("status", "open").order("created_at", { ascending: false });
-  if (error) throw error;
-  return data;
-}
-export type OpportunityWithBrand = Awaited<ReturnType<typeof fetchOpportunities>>[number];
-
-export const opportunitiesQuery = () => queryOptions({ queryKey: ["opportunities"], queryFn: fetchOpportunities, retry: false });
+export const opportunitiesQuery = () =>
+  queryOptions({
+    queryKey: ["opportunities"],
+    queryFn: async () => {
+      const { data, error } = await db().from("opportunities").select(OPP_SELECT).eq("status", "open").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as OpportunityWithBrand[];
+    },
+    retry: false,
+  });
 
 export const opportunityQuery = (id: string) =>
   queryOptions({
     queryKey: ["opportunities", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("opportunities").select(OPP_SELECT).eq("id", id).maybeSingle();
+      const { data, error } = await db().from("opportunities").select(OPP_SELECT).eq("id", id).maybeSingle();
       if (error) throw error;
-      return data;
+      return data as OpportunityWithBrand | null;
     },
     retry: false,
   });
@@ -135,42 +159,39 @@ export const brandOpportunitiesQuery = (userId: string) =>
   queryOptions({
     queryKey: ["opportunities", "mine", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db()
         .from("opportunities")
         .select(`*, applications:opportunity_applications!opportunity_applications_opportunity_id_fkey(*, ${APP_CREATOR})`)
         .eq("brand_id", userId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data as BrandOpportunity[];
     },
     retry: false,
   });
-export type BrandOpportunity = Awaited<ReturnType<NonNullable<ReturnType<typeof brandOpportunitiesQuery>["queryFn"]>>>[number];
-export type BrandApplication = BrandOpportunity["applications"][number];
 
 export const myApplicationsQuery = (userId: string) =>
   queryOptions({
     queryKey: ["applications", "mine", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db()
         .from("opportunity_applications")
         .select("*, opportunity:opportunities!opportunity_applications_opportunity_id_fkey(id, title, budget, brand:profiles!opportunities_brand_id_fkey(full_name, company_or_brand_name))")
         .eq("creator_id", userId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data as CreatorApplication[];
     },
     retry: false,
   });
-export type CreatorApplication = Awaited<ReturnType<NonNullable<ReturnType<typeof myApplicationsQuery>["queryFn"]>>>[number];
 
 export const socialAccountsQuery = (userId: string) =>
   queryOptions({
     queryKey: ["socials", userId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("social_accounts").select("*").eq("creator_id", userId);
+      const { data, error } = await db().from("social_accounts").select("*").eq("creator_id", userId);
       if (error) throw error;
-      return data;
+      return data as SocialAccount[];
     },
     retry: false,
   });
