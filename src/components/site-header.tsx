@@ -17,6 +17,7 @@ export function SiteHeader() {
         </Link>
         <nav className="flex items-center gap-4 overflow-x-auto">
           <Link to="/explore" className={linkCls} activeProps={activeCls}>Explore</Link>
+          <Link to="/how-it-works" className={linkCls} activeProps={activeCls}>How it works</Link>
           <Link to="/dashboard/creator" className={linkCls} activeProps={activeCls}>Creator</Link>
           <Link to="/dashboard/sponsor" className={linkCls} activeProps={activeCls}>Sponsor</Link>
           {user && <Link to="/account" className={linkCls} activeProps={activeCls}>Account</Link>}
