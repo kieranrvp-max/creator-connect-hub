@@ -130,10 +130,13 @@ function CreatorView({ userId, name }: { userId: string; name: string | null }) 
       ) : (
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {myListings.map((l) => (
-            <Link key={l.id} to="/listing/$id" params={{ id: l.id }} className="rounded-xl border bg-card p-4 hover:shadow-md">
-              <p className="font-semibold">{l.title}</p>
+            <div key={l.id} className="rounded-xl border bg-card p-4">
+              <Link to="/listing/$id" params={{ id: l.id }} className="block hover:underline">
+                <p className="font-semibold">{l.title}</p>
+              </Link>
               <p className="text-sm text-muted-foreground">{l.channel_type} · {l.niche} · {formatGBP(Number(l.price_per_slot))}</p>
-            </Link>
+              <PromoEditor listingId={l.id} current={l.promo_code} />
+            </div>
           ))}
         </div>
       )}
@@ -212,6 +215,7 @@ function NewListingDialog({ userId }: { userId: string }) {
         ad_format: String(f.get("format") || "") || null,
         description: String(f.get("description") || "") || null,
         proof_screenshot_url: String(f.get("proof") || "") || null,
+        promo_code: String(f.get("promo") || "").trim().toUpperCase() || null,
       });
       if (error) throw error;
     },
@@ -246,6 +250,8 @@ function NewListingDialog({ userId }: { userId: string }) {
           <div className="space-y-2"><Label htmlFor="f">Ad format</Label><Input id="f" name="format" placeholder="100-word main sponsor section with 1 link" /></div>
           <div className="space-y-2"><Label htmlFor="d">Description</Label><Textarea id="d" name="description" rows={3} maxLength={1000} /></div>
           <div className="space-y-2"><Label htmlFor="s">Metrics proof link (optional)</Label><Input id="s" name="proof" type="url" placeholder="https:// screenshot of your analytics" /></div>
+          <div className="space-y-2"><Label htmlFor="promo">Promo code (optional)</Label><Input id="promo" name="promo" maxLength={40} placeholder="EARLYBIRD" className="uppercase" />
+            <p className="text-xs text-muted-foreground">EARLYBIRD lowers the platform fee to 5% so you keep 95% (first 10 bookings across Creator Connect).</p></div>
           <DialogFooter><Button type="submit" disabled={create.isPending}>{create.isPending ? "Saving…" : "Create listing"}</Button></DialogFooter>
         </form>
       </DialogContent>
@@ -292,5 +298,30 @@ function PayoutsCard() {
         </div>
       )}
     </div>
+  );
+}
+
+function PromoEditor({ listingId, current }: { listingId: string; current: string | null }) {
+  const [code, setCode] = useState(current ?? "");
+  const qc = useQueryClient();
+  const save = useMutation({
+    mutationFn: async (value: string | null) => {
+      const { error } = await supabase.from("listings").update({ promo_code: value }).eq("id", listingId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, value) => {
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      qc.invalidateQueries({ queryKey: ["fee-rate", listingId] });
+      if (!value) setCode("");
+      toast.success(value ? `${value} applied — platform fee lowered on new bookings` : "Promo code removed");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); save.mutate(code.trim().toUpperCase() || null); }}>
+      <Input aria-label="Promo code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Promo code" maxLength={40} className="h-8 uppercase" />
+      <Button type="submit" size="sm" variant="secondary" disabled={save.isPending}>Apply</Button>
+      {current && <Button type="button" size="sm" variant="ghost" disabled={save.isPending} onClick={() => save.mutate(null)}>Remove</Button>}
+    </form>
   );
 }

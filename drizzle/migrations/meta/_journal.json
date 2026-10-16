@@ -43,6 +43,13 @@
       "when": 1792148566251,
       "tag": "0005_restrict_sponsor_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792155069038,
+      "tag": "0006_promo_codes",
+      "breakpoints": true
     }
   ]
 }

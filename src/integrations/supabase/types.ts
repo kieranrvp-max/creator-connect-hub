@@ -25,6 +25,7 @@ export type Database = {
           payment_status: Database["public"]["Enums"]["payment_status"]
           platform_fee: number
           preferred_date: string
+          promo_code: string | null
           proof_url: string | null
           sponsor_id: string
           status: Database["public"]["Enums"]["booking_status"]
@@ -43,6 +44,7 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status"]
           platform_fee?: number
           preferred_date: string
+          promo_code?: string | null
           proof_url?: string | null
           sponsor_id?: string
           status?: Database["public"]["Enums"]["booking_status"]
@@ -61,6 +63,7 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status"]
           platform_fee?: number
           preferred_date?: string
+          promo_code?: string | null
           proof_url?: string | null
           sponsor_id?: string
           status?: Database["public"]["Enums"]["booking_status"]
@@ -98,6 +101,7 @@ export type Database = {
           id: string
           niche: string
           price_per_slot: number
+          promo_code: string | null
           proof_screenshot_url: string | null
           title: string
         }
@@ -112,6 +116,7 @@ export type Database = {
           id?: string
           niche: string
           price_per_slot: number
+          promo_code?: string | null
           proof_screenshot_url?: string | null
           title: string
         }
@@ -126,6 +131,7 @@ export type Database = {
           id?: string
           niche?: string
           price_per_slot?: number
+          promo_code?: string | null
           proof_screenshot_url?: string | null
           title?: string
         }
@@ -169,6 +175,30 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          fee_rate: number
+          max_uses: number | null
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          fee_rate: number
+          max_uses?: number | null
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          fee_rate?: number
+          max_uses?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -180,6 +210,7 @@ export type Database = {
         Returns: boolean
       }
       is_listing_owner: { Args: { _listing_id: string }; Returns: boolean }
+      listing_fee_rate: { Args: { _listing_id: string }; Returns: number }
       taken_dates: { Args: { _listing_id: string }; Returns: string[] }
     }
     Enums: {

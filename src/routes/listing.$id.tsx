@@ -42,6 +42,13 @@ function ListingPage() {
   const [copy, setCopy] = useState("");
   const [pending, setPending] = useState<{ preferredDate: string; adCopy: string; targetLink: string } | null>(null);
   const startCheckout = useServerFn(createBookingCheckout);
+  const { data: feeRate } = useQuery({
+    queryKey: ["fee-rate", id],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("listing_fee_rate", { _listing_id: id });
+      return data == null ? undefined : Number(data);
+    },
+  });
   const { data: taken = [] } = useQuery({
     queryKey: ["taken-dates", id],
     queryFn: async () => {
@@ -132,7 +139,7 @@ function ListingPage() {
             </div>
             <div className="space-y-2"><Label htmlFor="url">Destination URL</Label><Input id="url" name="url" type="url" required placeholder="https://" /></div>
             <Separator />
-            <SponsorshipBreakdown total={price} />
+            <SponsorshipBreakdown total={price} rate={feeRate} promoCode={listing?.promo_code} />
             {!user ? (
               <Button asChild className="w-full" size="lg"><Link to="/auth" search={{ redirect: `/listing/${id}` }}>Sign in to book</Link></Button>
             ) : isOwn ? (
@@ -147,7 +154,7 @@ function ListingPage() {
       <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader><DialogTitle>Pay for your slot</DialogTitle></DialogHeader>
-          <SponsorshipBreakdown total={price} />
+          <SponsorshipBreakdown total={price} rate={feeRate} promoCode={listing?.promo_code} />
           {pending && <BookingEmbeddedCheckout fetchSecret={fetchSecret} />}
         </DialogContent>
       </Dialog>

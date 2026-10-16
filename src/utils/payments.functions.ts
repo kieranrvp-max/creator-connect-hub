@@ -156,7 +156,7 @@ export const createBookingCheckout = createServerFn({ method: "POST" })
         return_url: `${origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
         line_items: [{
           quantity: 1,
-          price_data: { currency: "gbp", unit_amount: toPence(total), product_data: { name: description, description: `Includes 15% Creator Connect platform fee (£${fee.toFixed(2)}). Creator share: £${(total - fee).toFixed(2)}. No additional platform fee.` } },
+          price_data: { currency: "gbp", unit_amount: toPence(total), product_data: { name: description, description: `Includes ${Math.round((fee / total) * 100)}% Creator Connect platform fee (£${fee.toFixed(2)}). Creator share: £${(total - fee).toFixed(2)}. No additional platform fee.` } },
         }],
         payment_intent_data: {
           ...bookingCharge(total, fee, creator.stripe_connect_account_id, booking.id, userId),
