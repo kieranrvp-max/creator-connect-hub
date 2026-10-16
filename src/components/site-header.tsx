@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
-const linkCls = "text-sm text-muted-foreground hover:text-foreground transition-colors";
-const activeCls = { className: "text-sm font-semibold text-foreground" };
+const linkCls = "shrink-0 whitespace-nowrap text-sm text-muted-foreground hover:text-foreground transition-colors";
+const activeCls = { className: "shrink-0 whitespace-nowrap text-sm font-semibold text-foreground" };
 
 export function SiteHeader() {
   const { user, ready } = useAuth();
