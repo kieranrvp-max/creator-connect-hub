@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListingCard } from "@/components/listing-card";
+import { useAuth } from "@/hooks/use-auth";
 import { listingsQuery } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/")({
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const PROMO = "EARLYBIRD";
+const PROMO_BY_ROLE = { creator: "EARLYBIRD", sponsor: "EARLYBIRDBIZ" } as const;
 
 function Home() {
   return (
@@ -36,9 +37,11 @@ function Home() {
 }
 
 function AnnouncementBanner() {
+  const { user, ready } = useAuth();
+  if (ready && user) return null;
   return (
     <div className="bg-brand-gradient px-4 py-2.5 text-center text-sm font-medium text-white" data-testid="home-announcement-banner">
-      🎉 Early Access: First 10 creators get a reduced 5% commission using code <strong className="font-bold">EARLYBIRD</strong> at checkout!
+      🎉 Early Access: First 10 Creators (code: <strong className="font-bold">EARLYBIRD</strong>) &amp; First 10 Brands (code: <strong className="font-bold">EARLYBIRDBIZ</strong>) get 5% commission rates!
     </div>
   );
 }
@@ -60,13 +63,20 @@ function Hero() {
           <p className="mt-6 max-w-xl text-base text-white/70 md:text-lg" data-testid="home-hero-subheadline">
             The premier UK sponsorship marketplace built for creators to pitch, collaborate, and get paid seamlessly.
           </p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button asChild size="lg" className="group h-12 rounded-full border-0 bg-brand-gradient px-7 text-base text-white shadow-lg shadow-[#A855F7]/30 transition-transform hover:-translate-y-0.5" data-testid="home-get-started-creator-btn">
-              <Link to="/dashboard/creator">
-                Get Started as Creator <ArrowRight className="transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="h-12 rounded-full border-white/20 bg-white/5 px-7 text-base text-white hover:bg-white/10 hover:text-white" data-testid="home-explore-marketplace-btn">
+          <div className="mt-9 flex flex-col gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg" className="group h-12 rounded-full border-0 bg-brand-gradient px-7 text-base text-white shadow-lg shadow-[#A855F7]/30 transition-transform hover:-translate-y-0.5" data-testid="home-get-started-creator-btn">
+                <Link to="/auth" search={{ role: "creator" }}>
+                  Get Started as Creator <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" className="group h-12 rounded-full border-0 bg-brand-gradient px-7 text-base text-white shadow-lg shadow-[#EC4899]/30 transition-transform hover:-translate-y-0.5" data-testid="home-get-started-brand-btn">
+                <Link to="/auth" search={{ role: "sponsor" }}>
+                  Get Started as Brand / Business <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Button>
+            </div>
+            <Button asChild size="lg" variant="outline" className="h-12 w-fit rounded-full border-white/20 bg-white/5 px-7 text-base text-white hover:bg-white/10 hover:text-white" data-testid="home-explore-marketplace-btn">
               <Link to="/explore">Explore Marketplace</Link>
             </Button>
           </div>
@@ -81,22 +91,25 @@ function Hero() {
 }
 
 function PromoBadge() {
+  const { user, ready, profile } = useAuth();
   const [copied, setCopied] = useState(false);
+  if (!ready || !user) return null;
+  const code = PROMO_BY_ROLE[profile?.user_type ?? "sponsor"];
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(PROMO);
+      await navigator.clipboard.writeText(code);
       setCopied(true);
-      toast.success("Code EARLYBIRD copied");
+      toast.success(`Code ${code} copied`);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Couldn't copy — the code is EARLYBIRD");
+      toast.error(`Couldn't copy — the code is ${code}`);
     }
   };
   return (
     <div className="mt-8 inline-flex flex-wrap items-center gap-3 rounded-2xl border border-[#EC4899]/30 bg-white/5 p-2 pl-4 backdrop-blur" data-testid="home-promo-badge">
-      <span className="text-sm text-white/70">Early access code</span>
+      <span className="text-sm text-white/70">Your early access code</span>
       <code className="rounded-lg border border-dashed border-[#EC4899]/60 bg-[#EC4899]/10 px-3 py-1.5 font-mono text-sm font-bold tracking-[0.2em] text-white" data-testid="home-promo-code">
-        {PROMO}
+        {code}
       </code>
       <Button size="sm" variant="ghost" onClick={copy} className="rounded-lg text-white hover:bg-white/10 hover:text-white" data-testid="home-promo-copy-btn" aria-label="Copy promo code">
         {copied ? <Check className="text-green-400" /> : <Copy />} {copied ? "Copied" : "Copy"}

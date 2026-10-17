@@ -3,18 +3,24 @@ import { BadgeCheck, Users, MailOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SocialBadges } from "@/components/social-badges";
+import { ShareButton } from "@/components/share-button";
+import { DeleteListingButton } from "@/components/delete-listing-button";
+import { useAuth } from "@/hooks/use-auth";
 import { formatCount, formatGBP, type ListingWithCreator } from "@/lib/marketplace";
 
 export function ListingCard({ listing }: { listing: ListingWithCreator }) {
+  const { user } = useAuth();
+  const isOwner = user?.id === listing.creator_id;
+  const verified = listing.proof_screenshot_url || listing.creator?.socials.some((s) => s.verified);
   return (
-    <article className="flex flex-col rounded-xl border bg-card p-5 transition-shadow hover:shadow-lg hover:shadow-primary/10" data-testid="listing-card">
+    <article className="flex flex-col rounded-xl border bg-card p-5 transition-shadow hover:shadow-lg hover:shadow-primary/10 hover:[box-shadow:0_0_15px_rgba(236,72,153,0.3)]" data-testid="listing-card">
       <div className="flex items-center justify-between gap-2">
         <Badge variant="secondary">{listing.channel_type}</Badge>
         <span className="text-xs text-muted-foreground">{listing.niche}</span>
       </div>
       <h3 className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
         {listing.title}
-        {listing.proof_screenshot_url && <BadgeCheck className="size-4 text-success" aria-label="Metrics proof provided" />}
+        {verified && <BadgeCheck className="size-4 text-success" aria-label="Verified creator" />}
       </h3>
       <p className="text-sm text-muted-foreground">by {listing.creator?.company_or_brand_name || listing.creator?.full_name || "Creator"}</p>
       <SocialBadges socials={listing.creator?.socials ?? []} className="mt-3" />
@@ -33,9 +39,13 @@ export function ListingCard({ listing }: { listing: ListingWithCreator }) {
           <span className="font-display text-2xl font-semibold">{formatGBP(Number(listing.price_per_slot))}</span>
           <span className="text-xs text-muted-foreground"> / slot</span>
         </div>
-        <Button asChild size="sm">
-          <Link to="/listing/$id" params={{ id: listing.id }}>Book Sponsorship</Link>
-        </Button>
+        <div className="flex items-center gap-1">
+          <ShareButton path={`/listing/${listing.id}`} />
+          {isOwner && <DeleteListingButton listingId={listing.id} />}
+          <Button asChild size="sm">
+            <Link to="/listing/$id" params={{ id: listing.id }}>Book Sponsorship</Link>
+          </Button>
+        </div>
       </div>
     </article>
   );

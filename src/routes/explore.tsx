@@ -3,6 +3,7 @@ import { ArrowRight, Megaphone, Radio } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -96,9 +97,29 @@ function MarketTabs({ tab }: { tab: Tab }) {
   );
 }
 
+function toggleIn(list: string[], value: string) {
+  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+}
+
+function MultiFilter({ label, values, onChange, options, testId }: { label: string; values: string[]; onChange: (v: string[]) => void; options: readonly string[]; testId: string }) {
+  return (
+    <fieldset className="space-y-2" data-testid={testId}>
+      <legend className="text-sm font-medium">{label}</legend>
+      <div className="space-y-1.5">
+        {options.map((o) => (
+          <label key={o} className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <Checkbox checked={values.includes(o)} onCheckedChange={() => onChange(toggleIn(values, o))} data-testid={`${testId}-${o.toLowerCase().replace(/\s+/g, "-")}`} />
+            {o}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
 function SlotsPanel() {
-  const [channel, setChannel] = useState("all");
-  const [niche, setNiche] = useState("all");
+  const [channels, setChannels] = useState<string[]>([]);
+  const [niches, setNiches] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState(MAX);
   const { data: listings = [], isLoading } = useQuery(listingsQuery());
 
@@ -106,26 +127,26 @@ function SlotsPanel() {
     () =>
       listings.filter(
         (l) =>
-          (channel === "all" || l.channel_type === channel) &&
-          (niche === "all" || l.niche === niche) &&
+          (channels.length === 0 || channels.includes(l.channel_type)) &&
+          (niches.length === 0 || niches.includes(l.niche)) &&
           (maxPrice >= MAX || Number(l.price_per_slot) <= maxPrice),
       ),
-    [listings, channel, niche, maxPrice],
+    [listings, channels, niches, maxPrice],
   );
 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[240px_1fr]" data-testid="slots-panel">
       <aside className="space-y-6 lg:sticky lg:top-20 lg:self-start">
-        <FilterSelect label="Channel type" value={channel} onChange={setChannel} all="All channels" options={CHANNELS} testId="filter-channel" />
-        <FilterSelect label="Niche" value={niche} onChange={setNiche} all="All niches" options={NICHES} testId="filter-niche" />
+        <MultiFilter label="Platform" values={channels} onChange={setChannels} options={CHANNELS} testId="filter-channel" />
+        <MultiFilter label="Niche" values={niches} onChange={setNiches} options={NICHES} testId="filter-niche" />
         <div className="space-y-3">
           <div className="flex justify-between">
-            <Label>Max price</Label>
-            <span className="text-sm font-semibold">{maxPrice >= MAX ? "Any" : formatGBP(maxPrice)}</span>
+            <Label>Budget range</Label>
+            <span className="text-sm font-semibold">{maxPrice >= MAX ? "Any" : `up to ${formatGBP(maxPrice)}`}</span>
           </div>
           <Slider min={50} max={MAX} step={10} value={[maxPrice]} onValueChange={(v) => setMaxPrice(v[0] ?? MAX)} data-testid="filter-max-price" />
         </div>
-        <Button variant="ghost" size="sm" data-testid="filter-reset-btn" onClick={() => { setChannel("all"); setNiche("all"); setMaxPrice(MAX); }}>
+        <Button variant="ghost" size="sm" data-testid="filter-reset-btn" onClick={() => { setChannels([]); setNiches([]); setMaxPrice(MAX); }}>
           Reset filters
         </Button>
       </aside>

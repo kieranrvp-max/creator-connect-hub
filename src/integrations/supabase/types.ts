@@ -145,6 +145,137 @@ export type Database = {
           },
         ]
       }
+      opportunities: {
+        Row: {
+          brand_id: string
+          budget: number
+          channel_type: Database["public"]["Enums"]["channel_type"] | null
+          created_at: string
+          deadline: string | null
+          deliverables: string | null
+          description: string | null
+          id: string
+          niche: string
+          promo_code: string | null
+          status: Database["public"]["Enums"]["opportunity_status"]
+          title: string
+        }
+        Insert: {
+          brand_id?: string
+          budget: number
+          channel_type?: Database["public"]["Enums"]["channel_type"] | null
+          created_at?: string
+          deadline?: string | null
+          deliverables?: string | null
+          description?: string | null
+          id?: string
+          niche: string
+          promo_code?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          title: string
+        }
+        Update: {
+          brand_id?: string
+          budget?: number
+          channel_type?: Database["public"]["Enums"]["channel_type"] | null
+          created_at?: string
+          deadline?: string | null
+          deliverables?: string | null
+          description?: string | null
+          id?: string
+          niche?: string
+          promo_code?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_applications: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          opportunity_id: string
+          paid_at: string | null
+          payment_env: string | null
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          pitch: string
+          platform_fee: number
+          portfolio_link: string | null
+          promo_code: string | null
+          proof_url: string | null
+          released_at: string | null
+          status: Database["public"]["Enums"]["application_status"]
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_transfer_id: string | null
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          opportunity_id: string
+          paid_at?: string | null
+          payment_env?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          pitch: string
+          platform_fee?: number
+          portfolio_link?: string | null
+          promo_code?: string | null
+          proof_url?: string | null
+          released_at?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_transfer_id?: string | null
+          total_amount?: number
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          opportunity_id?: string
+          paid_at?: string | null
+          payment_env?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          pitch?: string
+          platform_fee?: number
+          portfolio_link?: string | null
+          promo_code?: string | null
+          proof_url?: string | null
+          released_at?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_transfer_id?: string | null
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_applications_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_applications_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -199,6 +330,50 @@ export type Database = {
         }
         Relationships: []
       }
+      social_accounts: {
+        Row: {
+          avg_views: number | null
+          created_at: string
+          creator_id: string
+          followers: number
+          handle: string
+          id: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          synced_at: string | null
+          verified: boolean
+        }
+        Insert: {
+          avg_views?: number | null
+          created_at?: string
+          creator_id?: string
+          followers?: number
+          handle: string
+          id?: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          synced_at?: string | null
+          verified?: boolean
+        }
+        Update: {
+          avg_views?: number | null
+          created_at?: string
+          creator_id?: string
+          followers?: number
+          handle?: string
+          id?: string
+          platform?: Database["public"]["Enums"]["social_platform"]
+          synced_at?: string | null
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -210,10 +385,29 @@ export type Database = {
         Returns: boolean
       }
       is_listing_owner: { Args: { _listing_id: string }; Returns: boolean }
+      is_opportunity_owner: {
+        Args: { _opportunity_id: string }
+        Returns: boolean
+      }
       listing_fee_rate: { Args: { _listing_id: string }; Returns: number }
+      opportunity_fee_rate: {
+        Args: { _opportunity_id: string }
+        Returns: number
+      }
+      reprice_application: {
+        Args: { _application_id: string }
+        Returns: undefined
+      }
       taken_dates: { Args: { _listing_id: string }; Returns: string[] }
     }
     Enums: {
+      application_status:
+        | "pending"
+        | "accepted"
+        | "delivered"
+        | "released"
+        | "declined"
+        | "refunded"
       booking_status:
         | "pending_approval"
         | "accepted"
@@ -221,7 +415,9 @@ export type Database = {
         | "completed"
         | "declined"
       channel_type: "Newsletter" | "Podcast" | "YouTube" | "Social Media"
+      opportunity_status: "open" | "closed"
       payment_status: "unpaid" | "paid" | "refunded"
+      social_platform: "tiktok" | "instagram"
       user_type: "creator" | "sponsor"
     }
     CompositeTypes: {
@@ -350,6 +546,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      application_status: [
+        "pending",
+        "accepted",
+        "delivered",
+        "released",
+        "declined",
+        "refunded",
+      ],
       booking_status: [
         "pending_approval",
         "accepted",
@@ -358,7 +562,9 @@ export const Constants = {
         "declined",
       ],
       channel_type: ["Newsletter", "Podcast", "YouTube", "Social Media"],
+      opportunity_status: ["open", "closed"],
       payment_status: ["unpaid", "paid", "refunded"],
+      social_platform: ["tiktok", "instagram"],
       user_type: ["creator", "sponsor"],
     },
   },
