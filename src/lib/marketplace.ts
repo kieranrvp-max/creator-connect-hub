@@ -33,8 +33,11 @@ export type CreatorApplication = Application & { opportunity: { id: string; titl
 
 export const ROLE_LABEL: Record<UserType, string> = { creator: "Creator", sponsor: "Brand / Business" };
 
-export const CHANNELS: ChannelType[] = ["Newsletter", "Podcast", "YouTube", "Social Media"];
-export const NICHES = ["Tech", "Finance", "Lifestyle", "Design", "Health", "Gaming"];
+export const CHANNELS: ChannelType[] = ["Instagram", "TikTok", "YouTube", "Newsletter", "Podcast", "Social Media"];
+export const NICHES = ["Tech", "Lifestyle", "Food & Drink", "Beauty", "Fitness", "Finance", "Fashion", "Travel", "Gaming", "Design", "Health", "Parenting"];
+
+export const SUPPORT_EMAIL = "kieran@creatorconnecthub.co.uk";
+export const INSTAGRAM_URL = "https://instagram.com/joincreatorconnect";
 
 /** Platform fee taken from the creator's share; sponsor pays the listed price. Mirrors the database trigger. */
 export const PLATFORM_FEE_RATE = 0.15;

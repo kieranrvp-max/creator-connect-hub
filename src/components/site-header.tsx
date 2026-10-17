@@ -11,6 +11,7 @@ const LINKS = [
   { to: "/", label: "Home", exact: true },
   { to: "/explore", label: "Explore" },
   { to: "/how-it-works", label: "How it works" },
+  { to: "/contact", label: "Contact" },
   { to: "/dashboard/creator", label: "Creator" },
   { to: "/dashboard/sponsor", label: "Brand" },
 ] as const;
