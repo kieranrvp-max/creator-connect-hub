@@ -19,7 +19,7 @@ export type ListingWithCreator = ListingRow & { creator: (NameRef & { socials: S
 export type Opportunity = {
   id: string; brand_id: string; title: string; niche: string; channel_type: ChannelType | null; budget: number;
   description: string | null; deliverables: string | null; deadline: string | null; status: "open" | "closed";
-  promo_code: string | null; created_at: string;
+  promo_code: string | null; created_at: string; pinned: boolean;
 };
 export type OpportunityWithBrand = Opportunity & { brand: NameRef | null };
 export type Application = {
@@ -55,9 +55,9 @@ const LISTING_SELECT_BASIC = "*, creator:profiles!listings_creator_id_fkey(full_
 const withSocials = (l: ListingRow & { creator: NameRef | null }): ListingWithCreator => ({ ...l, creator: l.creator ? { ...l.creator, socials: [] } : null });
 
 async function fetchListings(): Promise<ListingWithCreator[]> {
-  const res = await untyped(supabase).from("listings").select(LISTING_SELECT).order("created_at", { ascending: false });
+  const res = await untyped(supabase).from("listings").select(LISTING_SELECT).order("pinned", { ascending: false }).order("created_at", { ascending: false });
   if (!res.error) return res.data as ListingWithCreator[];
-  const { data, error } = await supabase.from("listings").select(LISTING_SELECT_BASIC).order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("listings").select(LISTING_SELECT_BASIC).order("pinned", { ascending: false }).order("created_at", { ascending: false });
   if (error) throw error;
   return data.map(withSocials);
 }
@@ -121,7 +121,7 @@ export const profileQuery = (userId: string) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, user_type, full_name, avatar_url, company_or_brand_name")
+        .select("id, user_type, full_name, avatar_url, company_or_brand_name, location, bio, website_url, verified_badge, suspended")
         .eq("id", userId)
         .maybeSingle();
       if (error) throw error;
@@ -138,7 +138,7 @@ export const opportunitiesQuery = () =>
   queryOptions({
     queryKey: ["opportunities"],
     queryFn: async () => {
-      const { data, error } = await db().from("opportunities").select(OPP_SELECT).eq("status", "open").order("created_at", { ascending: false });
+      const { data, error } = await db().from("opportunities").select(OPP_SELECT).eq("status", "open").order("pinned", { ascending: false }).order("created_at", { ascending: false });
       if (error) throw error;
       return data as OpportunityWithBrand[];
     },

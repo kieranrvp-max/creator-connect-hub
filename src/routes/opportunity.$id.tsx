@@ -13,6 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { SponsorshipBreakdown } from "@/components/sponsorship-breakdown";
 import { ShareButton } from "@/components/share-button";
+import { AdminContentControls } from "@/components/admin-content-controls";
+import { ReportButton } from "@/components/report-button";
 import { formatDate, formatGBP, myApplicationsQuery, opportunityQuery } from "@/lib/marketplace";
 import { untyped } from "@/lib/db-untyped";
 
@@ -51,8 +53,12 @@ function OpportunityPage() {
         <Link to="/explore" search={{ tab: "opportunities" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground" data-testid="opportunity-back-link">
           <ArrowLeft className="size-4" /> All opportunities
         </Link>
-        <ShareButton path={`/opportunity/${id}`} variant="outline" label="Share" />
+        <div className="flex items-center gap-3">
+          <ReportButton kind="opportunity" id={id} />
+          <ShareButton path={`/opportunity/${id}`} variant="outline" label="Share" />
+        </div>
       </div>
+      <div className="mt-4"><AdminContentControls kind="opportunity" id={id} pinned={!!o.pinned} /></div>
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
         <section>
           <div className="flex flex-wrap items-center gap-2">

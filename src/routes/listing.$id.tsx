@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { BookingEmbeddedCheckout } from "@/components/embedded-checkout";
 import { SponsorshipBreakdown } from "@/components/sponsorship-breakdown";
 import { ShareButton } from "@/components/share-button";
+import { AdminContentControls } from "@/components/admin-content-controls";
+import { ReportButton } from "@/components/report-button";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { createBookingCheckout } from "@/utils/payments.functions";
 import { useAuth } from "@/hooks/use-auth";
@@ -91,8 +93,12 @@ function ListingPage() {
         <Link to="/explore" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="size-4" /> Back to explore
         </Link>
-        <ShareButton path={`/listing/${id}`} variant="outline" label="Share" />
+        <div className="flex items-center gap-3">
+          <ReportButton kind="listing" id={id} />
+          <ShareButton path={`/listing/${id}`} variant="outline" label="Share" />
+        </div>
       </div>
+      <div className="mt-4"><AdminContentControls kind="listing" id={id} pinned={!!listing.pinned} /></div>
       <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_380px]">
         <div>
           <div className="flex gap-2"><Badge>{listing.channel_type}</Badge><Badge variant="outline">{listing.niche}</Badge></div>
