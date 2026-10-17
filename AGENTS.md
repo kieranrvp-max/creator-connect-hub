@@ -18,3 +18,4 @@
 - An hourly managed schedule hits `/api/public/jobs/expire-requests` to auto-refund stale pending requests.
 
 - Authentication emails use the scaffolded managed handler under `/lovable/email/auth/`; keep all six actions and shared email-safe styles so branding stays consistent without custom delivery infrastructure.
+- Admin rights live in `user_roles` (checked with `has_role`); the UI hint is `useIsAdmin`, but database policies enforce every admin action. Commission validation accepts 0–15% so admin promo codes work without code changes.
