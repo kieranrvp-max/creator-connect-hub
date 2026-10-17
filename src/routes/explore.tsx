@@ -189,7 +189,7 @@ function OpportunitiesPanel() {
           </div>
           <Slider min={0} max={BUDGET_MAX} step={50} value={[minBudget]} onValueChange={(v) => setMinBudget(v[0] ?? 0)} data-testid="opp-filter-min-budget" />
         </div>
-        <Button variant="ghost" size="sm" data-testid="opp-filter-reset-btn" onClick={() => { setNiche("all"); setMinBudget(0); }}>Reset filters</Button>
+        <Button variant="ghost" size="sm" data-testid="opp-filter-reset-btn" onClick={() => { setNiches([]); setMinBudget(0); }}>Reset filters</Button>
         <div className="rounded-xl border border-[#EC4899]/25 bg-[#EC4899]/5 p-4 text-sm">
           <p className="font-semibold">Are you a brand?</p>
           <p className="mt-1 text-muted-foreground">Post a campaign brief and let creators pitch to you.</p>
