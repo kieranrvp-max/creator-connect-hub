@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Megaphone, Radio } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -170,18 +169,18 @@ function SlotsPanel() {
 }
 
 function OpportunitiesPanel() {
-  const [niche, setNiche] = useState("all");
+  const [niches, setNiches] = useState<string[]>([]);
   const [minBudget, setMinBudget] = useState(0);
   const { data: opps = [], isLoading, error } = useQuery(opportunitiesQuery());
   const results = useMemo(
-    () => opps.filter((o) => (niche === "all" || o.niche === niche) && Number(o.budget) >= minBudget),
-    [opps, niche, minBudget],
+    () => opps.filter((o) => (niches.length === 0 || niches.includes(o.niche)) && Number(o.budget) >= minBudget),
+    [opps, niches, minBudget],
   );
 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[240px_1fr]" data-testid="opportunities-panel">
       <aside className="order-last space-y-6 lg:order-none lg:sticky lg:top-20 lg:self-start">
-        <FilterSelect label="Niche" value={niche} onChange={setNiche} all="All niches" options={NICHES} testId="opp-filter-niche" />
+        <MultiFilter label="Niche" values={niches} onChange={setNiches} options={NICHES} testId="opp-filter-niche" />
         <div className="space-y-3">
           <div className="flex justify-between">
             <Label>Min budget</Label>
@@ -189,7 +188,7 @@ function OpportunitiesPanel() {
           </div>
           <Slider min={0} max={BUDGET_MAX} step={50} value={[minBudget]} onValueChange={(v) => setMinBudget(v[0] ?? 0)} data-testid="opp-filter-min-budget" />
         </div>
-        <Button variant="ghost" size="sm" data-testid="opp-filter-reset-btn" onClick={() => { setNiche("all"); setMinBudget(0); }}>Reset filters</Button>
+        <Button variant="ghost" size="sm" data-testid="opp-filter-reset-btn" onClick={() => { setNiches([]); setMinBudget(0); }}>Reset filters</Button>
         <div className="rounded-xl border border-[#EC4899]/25 bg-[#EC4899]/5 p-4 text-sm">
           <p className="font-semibold">Are you a brand?</p>
           <p className="mt-1 text-muted-foreground">Post a campaign brief and let creators pitch to you.</p>
@@ -213,21 +212,6 @@ function OpportunitiesPanel() {
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function FilterSelect({ label, value, onChange, all, options, testId }: { label: string; value: string; onChange: (v: string) => void; all: string; options: readonly string[]; testId: string }) {
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger data-testid={testId}><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{all}</SelectItem>
-          {options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-        </SelectContent>
-      </Select>
     </div>
   );
 }

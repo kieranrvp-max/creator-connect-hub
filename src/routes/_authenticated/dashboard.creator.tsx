@@ -17,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/status-badge";
+import { DealTracker } from "@/components/deal-tracker";
+import { DeleteListingButton } from "@/components/delete-listing-button";
 import {
   CHANNELS, NICHES, creatorBookingsQuery, myApplicationsQuery, type CreatorApplication, formatDate, formatGBP, myListingsQuery, profileQuery,
   type BookingStatus, type ChannelType, type CreatorBooking,
@@ -142,9 +144,12 @@ function CreatorView({ userId, name }: { userId: string; name: string | null }) 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {myListings.map((l) => (
             <div key={l.id} className="rounded-xl border bg-card p-4">
-              <Link to="/listing/$id" params={{ id: l.id }} className="block hover:underline">
-                <p className="font-semibold">{l.title}</p>
-              </Link>
+              <div className="flex items-start justify-between gap-2">
+                <Link to="/listing/$id" params={{ id: l.id }} className="block hover:underline">
+                  <p className="font-semibold">{l.title}</p>
+                </Link>
+                <DeleteListingButton listingId={l.id} hasPaidBookings={items.some((b) => b.listing_id === l.id)} />
+              </div>
               <p className="text-sm text-muted-foreground">{l.channel_type} · {l.niche} · {formatGBP(Number(l.price_per_slot))}</p>
               <PromoEditor listingId={l.id} current={l.promo_code} />
             </div>
@@ -170,7 +175,8 @@ function BookingRow({ b, onUpdate }: { b: CreatorBooking; onUpdate: (p: { status
     <div className="flex flex-col gap-4 rounded-xl border bg-card p-5 md:flex-row md:items-center">
       <div className="flex-1">
         <div className="flex items-center gap-2"><span className="font-semibold">{sponsor}</span><StatusBadge status={b.status} /></div>
-        <p className="text-sm text-muted-foreground">{b.listing?.title} · {formatDate(b.preferred_date)} · you earn {formatGBP(Number(b.total_amount) - Number(b.platform_fee))}</p>
+        <div className="mt-2"><DealTracker status={b.status} /></div>
+        <p className="mt-1 text-sm text-muted-foreground">{b.listing?.title} · {formatDate(b.preferred_date)} · you earn {formatGBP(Number(b.total_amount) - Number(b.platform_fee))}</p>
         <p className="mt-2 text-sm italic">“{b.ad_copy}”</p>
         <a href={b.target_link} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground underline">{b.target_link}</a>
         {b.proof_url && <a href={b.proof_url} target="_blank" rel="noreferrer" className="mt-2 flex items-center gap-1 text-sm text-primary">View proof <ExternalLink className="size-3" /></a>}

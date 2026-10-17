@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { SponsorshipBreakdown } from "@/components/sponsorship-breakdown";
+import { ShareButton } from "@/components/share-button";
 import { formatDate, formatGBP, myApplicationsQuery, opportunityQuery } from "@/lib/marketplace";
 import { untyped } from "@/lib/db-untyped";
 
@@ -46,9 +47,12 @@ function OpportunityPage() {
   const brand = o.brand?.company_or_brand_name || o.brand?.full_name || "Brand";
   return (
     <main className="mx-auto max-w-5xl px-4 py-10" data-testid="opportunity-page">
-      <Link to="/explore" search={{ tab: "opportunities" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground" data-testid="opportunity-back-link">
-        <ArrowLeft className="size-4" /> All opportunities
-      </Link>
+      <div className="flex items-center justify-between gap-2">
+        <Link to="/explore" search={{ tab: "opportunities" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground" data-testid="opportunity-back-link">
+          <ArrowLeft className="size-4" /> All opportunities
+        </Link>
+        <ShareButton path={`/opportunity/${id}`} variant="outline" label="Share" />
+      </div>
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
         <section>
           <div className="flex flex-wrap items-center gap-2">

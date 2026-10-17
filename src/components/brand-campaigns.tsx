@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ExternalLink, Plus, ShieldCheck } from "lucide-react";
+import { ExternalLink, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { acceptAndFundApplication, refundEscrow, releaseEscrow } from "@/utils/opportunities.functions";
@@ -13,6 +13,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookingEmbeddedCheckout } from "@/components/embedded-checkout";
 import { SponsorshipBreakdown } from "@/components/sponsorship-breakdown";
@@ -53,6 +57,17 @@ function OpportunityBlock({ o, onFund }: { o: BrandOpportunity; onFund: (a: Bran
     onSuccess: () => qc.invalidateQueries({ queryKey: ["opportunities"] }),
     onError: (e: Error) => toast.error(e.message),
   });
+  const hasFunded = o.applications.some((a) => a.payment_status === "paid" && a.status !== "declined" && a.status !== "refunded");
+  const del = useMutation({
+    mutationFn: async () => {
+      const { error: appErr } = await untyped(supabase).from("opportunity_applications").delete().eq("opportunity_id", o.id);
+      if (appErr) throw appErr;
+      const { error } = await untyped(supabase).from("opportunities").delete().eq("id", o.id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["opportunities"] }); toast.success("Post deleted successfully"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
   return (
     <div className="rounded-2xl border bg-card/80 p-5 backdrop-blur" data-testid="brand-opportunity">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -60,9 +75,34 @@ function OpportunityBlock({ o, onFund }: { o: BrandOpportunity; onFund: (a: Bran
           <Link to="/opportunity/$id" params={{ id: o.id }} className="text-lg font-semibold hover:text-primary">{o.title}</Link>
           <p className="text-sm text-muted-foreground">{o.niche} · {formatGBP(Number(o.budget))} budget{o.promo_code ? ` · ${o.promo_code}` : ""} · {o.status === "open" ? "Open" : "Closed"}</p>
         </div>
-        <Button size="sm" variant="outline" onClick={() => toggle.mutate()} disabled={toggle.isPending} data-testid="brand-opportunity-toggle-btn">
-          {o.status === "open" ? "Close brief" : "Reopen brief"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => toggle.mutate()} disabled={toggle.isPending} data-testid="brand-opportunity-toggle-btn">
+            {o.status === "open" ? "Close brief" : "Reopen brief"}
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" aria-label="Delete this post" data-testid="brand-opportunity-delete-btn"><Trash2 className="size-4" /></Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this post?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {hasFunded
+                    ? "This brief has funded applications, so it can't be deleted while those are active. Refund or release them first."
+                    : "Are you sure you want to delete this post? This action cannot be undone. Any linked applications will be removed too."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep post</AlertDialogCancel>
+                {!hasFunded && (
+                  <AlertDialogAction onClick={() => del.mutate()} disabled={del.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    {del.isPending ? "Deleting…" : "Delete post"}
+                  </AlertDialogAction>
+                )}
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
       <div className="mt-4 space-y-3">
         {o.applications.length === 0 ? (
