@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
-import { ALLOWED_FEE_RATES } from "@/lib/checkout-charge";
+import { isValidCommission } from "@/lib/checkout-charge";
 import { untyped } from "@/lib/db-untyped";
 
 type Result<T> = T | { error: string };

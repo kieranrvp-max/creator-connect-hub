@@ -8,7 +8,7 @@ function londonOffset(at: Date) {
 
 /** The instant a code expires: midnight UK time at the end of the chosen day (yyyy-mm-dd). */
 export function ukMidnightAfter(day: string) {
-  const [y, m, d] = day.split("-").map(Number);
+  const [y = 0, m = 1, d = 1] = day.split("-").map(Number);
   const guess = new Date(Date.UTC(y, m - 1, d + 1));
   return new Date(guess.getTime() - londonOffset(guess) * 60000);
 }
