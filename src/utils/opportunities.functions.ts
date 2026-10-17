@@ -58,7 +58,7 @@ export const acceptAndFundApplication = createServerFn({ method: "POST" })
       const total = Number(priced?.total_amount);
       const fee = Number(priced?.platform_fee);
       const amount = Math.round(total * 100);
-      if (!(amount > 0) || !ALLOWED_FEE_RATES.some((r) => Math.round(fee * 100) === Math.round(amount * r))) {
+      if (!isValidCommission(amount, Math.round(fee * 100))) {
         return { error: "Invalid commission on this application" };
       }
 
