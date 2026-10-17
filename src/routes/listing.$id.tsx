@@ -161,6 +161,9 @@ function ListingPage() {
       <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader><DialogTitle>Pay for your slot</DialogTitle></DialogHeader>
+          <p className="flex items-start gap-2 rounded-lg border border-[#A855F7]/25 bg-[#A855F7]/5 p-3 text-xs text-muted-foreground">
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#A855F7]" /> 🔒 100% Protected Payouts: Funds held securely in escrow until content is delivered &amp; approved.
+          </p>
           <SponsorshipBreakdown total={price} rate={feeRate} promoCode={listing?.promo_code} />
           {pending && <BookingEmbeddedCheckout fetchSecret={fetchSecret} />}
         </DialogContent>
