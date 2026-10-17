@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BookingEmbeddedCheckout } from "@/components/embedded-checkout";
 import { SponsorshipBreakdown } from "@/components/sponsorship-breakdown";
+import { ShareButton } from "@/components/share-button";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { createBookingCheckout } from "@/utils/payments.functions";
 import { useAuth } from "@/hooks/use-auth";
@@ -86,9 +87,12 @@ function ListingPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <Link to="/explore" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" /> Back to explore
-      </Link>
+      <div className="flex items-center justify-between gap-2">
+        <Link to="/explore" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="size-4" /> Back to explore
+        </Link>
+        <ShareButton path={`/listing/${id}`} variant="outline" label="Share" />
+      </div>
       <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_380px]">
         <div>
           <div className="flex gap-2"><Badge>{listing.channel_type}</Badge><Badge variant="outline">{listing.niche}</Badge></div>
@@ -147,6 +151,9 @@ function ListingPage() {
             ) : (
               <Button type="submit" className="w-full" size="lg" disabled={!!pending}>Proceed to Checkout</Button>
             )}
+            <p className="flex items-start gap-2 rounded-lg border border-[#A855F7]/25 bg-[#A855F7]/5 p-3 text-xs text-muted-foreground" data-testid="escrow-banner">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#A855F7]" /> 🔒 100% Protected Payouts: Funds held securely in escrow until content is delivered &amp; approved.
+            </p>
             <p className="flex items-center justify-center gap-1 text-xs text-muted-foreground"><ShieldCheck className="size-3" /> Full refund if the creator declines</p>
           </form>
         </aside>
