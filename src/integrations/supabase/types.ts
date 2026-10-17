@@ -460,6 +460,7 @@ export type Database = {
         Args: { _date: string; _exclude?: string; _listing_id: string }
         Returns: boolean
       }
+      creator_is_public: { Args: { _creator_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
