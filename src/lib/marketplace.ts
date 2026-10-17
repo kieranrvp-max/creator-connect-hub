@@ -19,7 +19,7 @@ export type ListingWithCreator = ListingRow & { creator: (NameRef & { socials: S
 export type Opportunity = {
   id: string; brand_id: string; title: string; niche: string; channel_type: ChannelType | null; budget: number;
   description: string | null; deliverables: string | null; deadline: string | null; status: "open" | "closed";
-  promo_code: string | null; created_at: string;
+  promo_code: string | null; created_at: string; pinned: boolean;
 };
 export type OpportunityWithBrand = Opportunity & { brand: NameRef | null };
 export type Application = {

@@ -103,7 +103,7 @@ function Users() {
     },
   });
   const update = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Person> }) => {
+    mutationFn: async ({ id, patch }: { id: string; patch: { verified_badge?: boolean; suspended?: boolean } }) => {
       const { error } = await supabase.from("profiles").update(patch).eq("id", id);
       if (error) throw error;
     },
