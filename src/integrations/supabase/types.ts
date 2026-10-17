@@ -311,24 +311,41 @@ export type Database = {
           active: boolean
           code: string
           created_at: string
+          expires_at: string | null
           fee_rate: number
           max_uses: number | null
+          referral_rate: number
+          referrer_id: string | null
         }
         Insert: {
           active?: boolean
           code: string
           created_at?: string
+          expires_at?: string | null
           fee_rate: number
           max_uses?: number | null
+          referral_rate?: number
+          referrer_id?: string | null
         }
         Update: {
           active?: boolean
           code?: string
           created_at?: string
+          expires_at?: string | null
           fee_rate?: number
           max_uses?: number | null
+          referral_rate?: number
+          referrer_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "promo_codes_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       social_accounts: {
         Row: {
@@ -374,14 +391,56 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      admin_promo_usage: {
+        Args: never
+        Returns: {
+          code: string
+          gross: number
+          referral_earnings: number
+          uses: number
+        }[]
+      }
+      admin_stats: {
+        Args: never
+        Returns: {
+          active_listings: number
+          deals_completed: number
+          total_users: number
+        }[]
+      }
       can_view_profile: { Args: { _profile_id: string }; Returns: boolean }
       creator_date_taken: {
         Args: { _date: string; _exclude?: string; _listing_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
         Returns: boolean
       }
       is_listing_owner: { Args: { _listing_id: string }; Returns: boolean }
@@ -401,6 +460,7 @@ export type Database = {
       taken_dates: { Args: { _listing_id: string }; Returns: string[] }
     }
     Enums: {
+      app_role: "admin"
       application_status:
         | "pending"
         | "accepted"
@@ -546,6 +606,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin"],
       application_status: [
         "pending",
         "accepted",
