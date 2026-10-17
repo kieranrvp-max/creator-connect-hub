@@ -10,12 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 
-type Search = { redirect?: string | undefined };
+type Search = { redirect?: string | undefined; role?: "creator" | "sponsor" | undefined };
 
 export const Route = createFileRoute("/auth")({
   staticData: { sitemap: false },
   validateSearch: (s: Record<string, unknown>): Search => ({
     redirect: typeof s["redirect"] === "string" && s["redirect"].startsWith("/") && !s["redirect"].startsWith("//") ? s["redirect"] : undefined,
+    role: s["role"] === "creator" ? "creator" : s["role"] === "sponsor" ? "sponsor" : undefined,
   }),
   head: () => ({
     meta: [
@@ -31,10 +32,10 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { redirect } = Route.useSearch();
+  const { redirect, role } = Route.useSearch();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
-  const [userType, setUserType] = useState<"creator" | "sponsor">("sponsor");
+  const [userType, setUserType] = useState<"creator" | "sponsor">(role ?? "sponsor");
   const [sent, setSent] = useState(false);
 
   const goNext = async (userId: string) => {
