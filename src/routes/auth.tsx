@@ -97,7 +97,7 @@ function AuthPage() {
         {sent ? (
           <p className="text-center">Check your email to confirm your account, then come back to sign in.</p>
         ) : (
-          <Tabs defaultValue="signin">
+          <Tabs defaultValue={role ? "signup" : "signin"}>
             <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="signin">Sign in</TabsTrigger><TabsTrigger value="signup">Create account</TabsTrigger></TabsList>
             <TabsContent value="signin">
               <form onSubmit={signIn} className="mt-4 space-y-4">

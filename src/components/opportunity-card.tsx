@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { CalendarClock, Megaphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ShareButton } from "@/components/share-button";
 import { formatDate, formatGBP, type OpportunityWithBrand } from "@/lib/marketplace";
 
 export function OpportunityCard({ o }: { o: OpportunityWithBrand }) {
