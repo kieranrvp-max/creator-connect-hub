@@ -13,3 +13,10 @@
 - [ ] Email notifications (user: not now)
 
 - [ ] Branded authentication emails and notify.creatorconnecthub.co.uk sender setup; sending awaits DNS verification and publishing.
+
+## Platform update (staged)
+- [x] Stage 1: admin role, admin bar, promo manager (expiry, limits, referrers)
+- [ ] Stage 2: moderation (admin delete/suspend/pin, profanity filter, report flag)
+- [ ] Stage 3: Profile hub + public profiles
+- [ ] Stage 4: ratings & reliability
+- [ ] Stage 5: location filter (waiting on rest of user's document)
