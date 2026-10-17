@@ -12,18 +12,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/status-badge";
-import { formatDate, formatGBP, profileQuery, sponsorBookingsQuery } from "@/lib/marketplace";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BrandCampaigns } from "@/components/brand-campaigns";
+import { formatDate, formatGBP, sponsorBookingsQuery } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/_authenticated/dashboard/sponsor")({
   staticData: { sitemap: false },
-  validateSearch: (s: Record<string, unknown>): { tab?: "orders" | "campaigns" | undefined } => ({
-    tab: s["tab"] === "campaigns" ? "campaigns" : undefined,
-  }),
   head: () => ({
     meta: [
-      { title: "Brand dashboard — Creator Connect" },
+      { title: "Sponsor dashboard — Creator Connect" },
       { name: "description", content: "Track your sponsorship orders and their status." },
       { property: "og:title", content: "Sponsor dashboard — Creator Connect" },
       { property: "og:description", content: "Track your sponsorship orders and their status." },
@@ -36,9 +31,6 @@ export const Route = createFileRoute("/_authenticated/dashboard/sponsor")({
 
 function SponsorDashboard() {
   const { user } = Route.useRouteContext();
-  const { tab = "orders" } = Route.useSearch();
-  const navigate = Route.useNavigate();
-  const profile = useQuery(profileQuery(user.id));
   const { data: orders = [], isLoading } = useQuery(sponsorBookingsQuery(user.id));
   const qc = useQueryClient();
   const resume = useServerFn(resumeBookingCheckout);
@@ -69,24 +61,10 @@ function SponsorDashboard() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><p className="text-sm text-muted-foreground">Total paid on slots · {formatGBP(spent)}</p><h1 className="text-4xl font-semibold">Brand dashboard</h1></div>
+        <div><p className="text-sm text-muted-foreground">Total paid · {formatGBP(spent)}</p><h1 className="text-4xl font-semibold">Your orders</h1></div>
         <Button asChild><Link to="/explore">Find creators</Link></Button>
       </div>
-      <Tabs value={tab} onValueChange={(v) => navigate({ search: v === "campaigns" ? { tab: "campaigns" } : {} })} className="mt-8">
-        <TabsList>
-          <TabsTrigger value="orders" data-testid="brand-tab-orders">Slot orders</TabsTrigger>
-          <TabsTrigger value="campaigns" data-testid="brand-tab-campaigns">Campaign opportunities</TabsTrigger>
-        </TabsList>
-        <TabsContent value="campaigns" className="mt-6">
-          {profile.isLoading ? <Skeleton className="h-40 rounded-xl" /> : profile.data?.user_type === "sponsor" ? <BrandCampaigns userId={user.id} /> : (
-            <div className="rounded-xl border border-dashed p-10 text-center" data-testid="brand-campaigns-wrong-role">
-              <p className="font-semibold">Campaign briefs are for Brand / Business accounts</p>
-              <p className="mt-1 text-sm text-muted-foreground">You're signed in as a Creator. Creators post sponsorship slots instead — or switch role in <Link to="/account" className="text-primary underline">Account settings</Link>.</p>
-            </div>
-          )}
-        </TabsContent>
-        <TabsContent value="orders" className="mt-6">
-      <div className="overflow-x-auto rounded-xl border bg-card">
+      <div className="mt-8 overflow-x-auto rounded-xl border bg-card">
         {isLoading ? <Skeleton className="h-40" /> : orders.length === 0 ? (
           <p className="p-12 text-center text-muted-foreground">No orders yet. Browse creators to book your first slot.</p>
         ) : (
@@ -125,8 +103,6 @@ function SponsorDashboard() {
           </Table>
         )}
       </div>
-        </TabsContent>
-      </Tabs>
       <Dialog open={!!payId} onOpenChange={(o) => { if (!o) { setPayId(null); qc.invalidateQueries({ queryKey: ["bookings"] }); } }}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader><DialogTitle>Finish payment</DialogTitle></DialogHeader>
