@@ -30,11 +30,11 @@ export function ContactForm({ onSent }: { onSent?: () => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = schema.safeParse(form);
-    if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Please check the form"); return; }
     setBusy(true);
     const { error } = await supabase.from("contact_submissions").insert(parsed.data);
     setBusy(false);
-    if (error) return toast.error("Couldn't send your message. Please try again.");
+    if (error) { toast.error("Couldn't send your message. Please try again."); return; }
     toast.success("Thanks — your message has been sent!");
     setForm({ name: "", email: "", message: "" });
     onSent?.();

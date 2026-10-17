@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ContactForm, ContactLinks } from "@/components/contact-form";
 
 export const Route = createFileRoute("/contact")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Contact us — Creator Connect" },
