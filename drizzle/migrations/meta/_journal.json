@@ -64,6 +64,13 @@
       "when": 1792195372181,
       "tag": "0008_allow_deleting_opportunities",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792244675375,
+      "tag": "0009_admin_roles_promo_manager",
+      "breakpoints": true
     }
   ]
 }

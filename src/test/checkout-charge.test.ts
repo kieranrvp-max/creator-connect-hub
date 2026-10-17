@@ -10,8 +10,11 @@ describe("included sponsorship commission", () => {
     expect(charge.transfer_data).toEqual({ destination: "acct_creator" });
     expect(10000 - Number(charge.application_fee_amount)).toBe(8500);
   });
-  it("rejects a booking fee that is not 15%", () => {
-    expect(() => bookingCharge(100, 10, "acct_creator", "booking", "sponsor")).toThrow("expected 15%");
+  it("rejects a booking fee above 15%", () => {
+    expect(() => bookingCharge(100, 20, "acct_creator", "booking", "sponsor")).toThrow("at most 15%");
+  });
+  it("allows an admin promo commission such as 10%", () => {
+    expect(bookingCharge(100, 10, "acct_creator", "booking", "sponsor").application_fee_amount).toBe(1000);
   });
   it("rounds a 15% commission to the nearest penny", () => {
     expect(bookingCharge(19.99, 3, "acct_creator", "booking", "sponsor").application_fee_amount).toBe(300);

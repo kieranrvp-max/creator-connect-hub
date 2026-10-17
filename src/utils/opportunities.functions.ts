@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
-import { ALLOWED_FEE_RATES } from "@/lib/checkout-charge";
+import { isValidCommission } from "@/lib/checkout-charge";
 import { untyped } from "@/lib/db-untyped";
 
 type Result<T> = T | { error: string };
@@ -58,7 +58,7 @@ export const acceptAndFundApplication = createServerFn({ method: "POST" })
       const total = Number(priced?.total_amount);
       const fee = Number(priced?.platform_fee);
       const amount = Math.round(total * 100);
-      if (!(amount > 0) || !ALLOWED_FEE_RATES.some((r) => Math.round(fee * 100) === Math.round(amount * r))) {
+      if (!isValidCommission(amount, Math.round(fee * 100))) {
         return { error: "Invalid commission on this application" };
       }
 
