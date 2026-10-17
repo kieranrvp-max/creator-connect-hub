@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { untyped } from "@/lib/db-untyped";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
