@@ -121,7 +121,7 @@ export const profileQuery = (userId: string) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, user_type, full_name, avatar_url, company_or_brand_name")
+        .select("id, user_type, full_name, avatar_url, company_or_brand_name, location, bio, website_url, verified_badge, suspended")
         .eq("id", userId)
         .maybeSingle();
       if (error) throw error;
