@@ -55,9 +55,9 @@ const LISTING_SELECT_BASIC = "*, creator:profiles!listings_creator_id_fkey(full_
 const withSocials = (l: ListingRow & { creator: NameRef | null }): ListingWithCreator => ({ ...l, creator: l.creator ? { ...l.creator, socials: [] } : null });
 
 async function fetchListings(): Promise<ListingWithCreator[]> {
-  const res = await untyped(supabase).from("listings").select(LISTING_SELECT).order("created_at", { ascending: false });
+  const res = await untyped(supabase).from("listings").select(LISTING_SELECT).order("pinned", { ascending: false }).order("created_at", { ascending: false });
   if (!res.error) return res.data as ListingWithCreator[];
-  const { data, error } = await supabase.from("listings").select(LISTING_SELECT_BASIC).order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("listings").select(LISTING_SELECT_BASIC).order("pinned", { ascending: false }).order("created_at", { ascending: false });
   if (error) throw error;
   return data.map(withSocials);
 }
@@ -138,7 +138,7 @@ export const opportunitiesQuery = () =>
   queryOptions({
     queryKey: ["opportunities"],
     queryFn: async () => {
-      const { data, error } = await db().from("opportunities").select(OPP_SELECT).eq("status", "open").order("created_at", { ascending: false });
+      const { data, error } = await db().from("opportunities").select(OPP_SELECT).eq("status", "open").order("pinned", { ascending: false }).order("created_at", { ascending: false });
       if (error) throw error;
       return data as OpportunityWithBrand[];
     },
