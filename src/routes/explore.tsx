@@ -170,18 +170,18 @@ function SlotsPanel() {
 }
 
 function OpportunitiesPanel() {
-  const [niche, setNiche] = useState("all");
+  const [niches, setNiches] = useState<string[]>([]);
   const [minBudget, setMinBudget] = useState(0);
   const { data: opps = [], isLoading, error } = useQuery(opportunitiesQuery());
   const results = useMemo(
-    () => opps.filter((o) => (niche === "all" || o.niche === niche) && Number(o.budget) >= minBudget),
-    [opps, niche, minBudget],
+    () => opps.filter((o) => (niches.length === 0 || niches.includes(o.niche)) && Number(o.budget) >= minBudget),
+    [opps, niches, minBudget],
   );
 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[240px_1fr]" data-testid="opportunities-panel">
       <aside className="order-last space-y-6 lg:order-none lg:sticky lg:top-20 lg:self-start">
-        <FilterSelect label="Niche" value={niche} onChange={setNiche} all="All niches" options={NICHES} testId="opp-filter-niche" />
+        <MultiFilter label="Niche" values={niches} onChange={setNiches} options={NICHES} testId="opp-filter-niche" />
         <div className="space-y-3">
           <div className="flex justify-between">
             <Label>Min budget</Label>
