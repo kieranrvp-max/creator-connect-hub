@@ -71,6 +71,13 @@
       "when": 1792244675375,
       "tag": "0009_admin_roles_promo_manager",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792245093010,
+      "tag": "0010_contact_and_platforms",
+      "breakpoints": true
     }
   ]
 }
