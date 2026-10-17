@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/status-badge";
+import { DealTracker } from "@/components/deal-tracker";
 import { formatDate, formatGBP, sponsorBookingsQuery } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/_authenticated/dashboard/sponsor")({
@@ -88,11 +89,14 @@ function SponsorDashboard() {
                     ) : b.payment_status === "refunded" ? (
                       <span className="text-sm text-muted-foreground">Refunded</span>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <StatusBadge status={b.status} />
-                        {b.status === "pending_approval" && (
-                          <Button size="sm" variant="ghost" onClick={() => onCancel(b.id)}>Cancel</Button>
-                        )}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <StatusBadge status={b.status} />
+                          {b.status === "pending_approval" && (
+                            <Button size="sm" variant="ghost" onClick={() => onCancel(b.id)}>Cancel</Button>
+                          )}
+                        </div>
+                        <DealTracker status={b.status} />
                       </div>
                     )}
                   </TableCell>
