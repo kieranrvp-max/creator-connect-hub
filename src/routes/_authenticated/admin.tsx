@@ -8,17 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatGBP } from "@/lib/marketplace";
 import { ukDayBefore, ukMidnightAfter } from "@/lib/uk-time";
+import { adminRefundApplication, adminRefundBooking, adminReleaseApplication } from "@/utils/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Admin — Creator Connect" },
-      { name: "description", content: "Manage promo and referral codes." },
+      { name: "description", content: "Creator Connect admin dashboard." },
       { property: "og:title", content: "Admin — Creator Connect" },
-      { property: "og:description", content: "Manage promo and referral codes." },
+      { property: "og:description", content: "Creator Connect admin dashboard." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -33,12 +35,280 @@ const blank: Form = { code: "", fee: "5", unlimited: false, maxUses: "10", expir
 
 function Admin() {
   const isAdmin = useIsAdmin();
+  if (!isAdmin) return <main className="mx-auto max-w-md px-4 py-12 text-muted-foreground">This page is for admins only.</main>;
+  return (
+    <main className="mx-auto max-w-5xl px-4 py-10">
+      <h1 className="text-3xl font-semibold">Admin dashboard</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Platform controls for Creator Connect.</p>
+      <Tabs defaultValue="overview" className="mt-6">
+        <TabsList className="flex w-full flex-wrap">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="escrow">Escrow</TabsTrigger>
+          <TabsTrigger value="announce">Announcements</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="promo">Promo codes</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview"><Overview /></TabsContent>
+        <TabsContent value="users"><Users /></TabsContent>
+        <TabsContent value="escrow"><Escrow /></TabsContent>
+        <TabsContent value="announce"><Announcements /></TabsContent>
+        <TabsContent value="reports"><Reports /></TabsContent>
+        <TabsContent value="promo"><Promo /></TabsContent>
+      </Tabs>
+    </main>
+  );
+}
+
+function Overview() {
+  const metrics = useQuery({
+    queryKey: ["admin-metrics"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_metrics");
+      if (error) throw error;
+      return data?.[0];
+    },
+  });
+  const m = metrics.data;
+  const cards = [
+    { label: "Creators", value: m?.creators ?? "…" },
+    { label: "Brands", value: m?.brands ?? "…" },
+    { label: "Active deals", value: m?.active_deals ?? "…" },
+    { label: "Gross volume", value: m ? formatGBP(Number(m.gross_volume)) : "…" },
+    { label: "Platform revenue", value: m ? formatGBP(Number(m.net_revenue)) : "…" },
+  ];
+  return (
+    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {cards.map((c) => (
+        <div key={c.label} className="rounded-xl border bg-card p-4">
+          <p className="text-xs text-muted-foreground">{c.label}</p>
+          <p className="mt-1 text-2xl font-semibold">{c.value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+type Person = { id: string; full_name: string | null; company_or_brand_name: string | null; user_type: string; verified_badge: boolean; suspended: boolean };
+
+function Users() {
+  const qc = useQueryClient();
+  const [q, setQ] = useState("");
+  const people = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id, full_name, company_or_brand_name, user_type, verified_badge, suspended").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Person[];
+    },
+  });
+  const update = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Person> }) => {
+      const { error } = await supabase.from("profiles").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const filtered = (people.data ?? []).filter((p) => {
+    const s = `${p.full_name ?? ""} ${p.company_or_brand_name ?? ""}`.toLowerCase();
+    return s.includes(q.toLowerCase());
+  });
+  return (
+    <div className="mt-4 space-y-3">
+      <Input placeholder="Search by name or business…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <div className="overflow-x-auto rounded-xl border">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
+            <tr><th className="p-3">Name</th><th className="p-3">Type</th><th className="p-3">Verified badge</th><th className="p-3">Suspended</th></tr>
+          </thead>
+          <tbody>
+            {filtered.map((p) => (
+              <tr key={p.id} className="border-t">
+                <td className="p-3 font-medium">{p.company_or_brand_name || p.full_name || "Unnamed"}</td>
+                <td className="p-3">{p.user_type === "creator" ? "Creator" : "Brand"}</td>
+                <td className="p-3"><Switch checked={p.verified_badge} onCheckedChange={(v) => update.mutate({ id: p.id, patch: { verified_badge: v } })} /></td>
+                <td className="p-3"><Switch checked={p.suspended} onCheckedChange={(v) => update.mutate({ id: p.id, patch: { suspended: v } })} /></td>
+              </tr>
+            ))}
+            {filtered.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-muted-foreground">No users match.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+type PaidBooking = { id: string; total_amount: number; status: string; paid_at: string | null; listing: { title: string } | null; sponsor: { full_name: string | null } | null };
+type PaidApp = { id: string; total_amount: number; status: string; paid_at: string | null; opportunity: { title: string } | null; creator: { full_name: string | null } | null };
+
+function Escrow() {
+  const qc = useQueryClient();
+  const bookings = useQuery({
+    queryKey: ["admin-escrow-bookings"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("bookings").select("id, total_amount, status, paid_at, listing:listings(title), sponsor:profiles!bookings_sponsor_id_fkey(full_name)").eq("payment_status", "paid").order("paid_at", { ascending: false });
+      if (error) throw error;
+      return data as unknown as PaidBooking[];
+    },
+  });
+  const apps = useQuery({
+    queryKey: ["admin-escrow-apps"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("opportunity_applications").select("id, total_amount, status, paid_at, opportunity:opportunities(title), creator:profiles!opportunity_applications_creator_id_fkey(full_name)").eq("payment_status", "paid").order("paid_at", { ascending: false });
+      if (error) throw error;
+      return data as unknown as PaidApp[];
+    },
+  });
+  const act = useMutation({
+    mutationFn: async ({ kind, id, action }: { kind: "booking" | "application"; id: string; action: "release" | "refund" }) => {
+      if (kind === "booking") {
+        if (action === "refund") await adminRefundBooking({ data: { bookingId: id } });
+        else throw new Error("Bookings pay out via Stripe Connect automatically");
+      } else if (action === "release") await adminReleaseApplication({ data: { applicationId: id } });
+      else await adminRefundApplication({ data: { applicationId: id } });
+    },
+    onSuccess: () => { qc.invalidateQueries(); toast.success("Done"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <div className="mt-4 space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold">Paid bookings</h2>
+        <div className="mt-2 overflow-x-auto rounded-xl border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-left text-xs text-muted-foreground"><tr><th className="p-3">Listing</th><th className="p-3">Sponsor</th><th className="p-3">Amount</th><th className="p-3">Status</th><th className="p-3" /></tr></thead>
+            <tbody>
+              {(bookings.data ?? []).map((b) => (
+                <tr key={b.id} className="border-t">
+                  <td className="p-3">{b.listing?.title ?? "—"}</td>
+                  <td className="p-3">{b.sponsor?.full_name ?? "—"}</td>
+                  <td className="p-3">{formatGBP(Number(b.total_amount))}</td>
+                  <td className="p-3">{b.status}</td>
+                  <td className="p-3 text-right"><Button size="sm" variant="outline" disabled={act.isPending} onClick={() => { if (confirm("Refund this booking to the sponsor?")) act.mutate({ kind: "booking", id: b.id, action: "refund" }); }}>Issue refund</Button></td>
+                </tr>
+              ))}
+              {(bookings.data ?? []).length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No paid bookings.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h2 className="text-lg font-semibold">Funded applications (escrow)</h2>
+        <div className="mt-2 overflow-x-auto rounded-xl border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-left text-xs text-muted-foreground"><tr><th className="p-3">Brief</th><th className="p-3">Creator</th><th className="p-3">Amount</th><th className="p-3">Status</th><th className="p-3" /></tr></thead>
+            <tbody>
+              {(apps.data ?? []).map((a) => (
+                <tr key={a.id} className="border-t">
+                  <td className="p-3">{a.opportunity?.title ?? "—"}</td>
+                  <td className="p-3">{a.creator?.full_name ?? "—"}</td>
+                  <td className="p-3">{formatGBP(Number(a.total_amount))}</td>
+                  <td className="p-3">{a.status}</td>
+                  <td className="space-x-1 whitespace-nowrap p-3 text-right">
+                    {a.status !== "released" && <Button size="sm" variant="outline" disabled={act.isPending} onClick={() => { if (confirm("Force-release escrow funds to the creator?")) act.mutate({ kind: "application", id: a.id, action: "release" }); }}>Force release</Button>}
+                    <Button size="sm" variant="outline" disabled={act.isPending} onClick={() => { if (confirm("Refund this application to the brand?")) act.mutate({ kind: "application", id: a.id, action: "refund" }); }}>Issue refund</Button>
+                  </td>
+                </tr>
+              ))}
+              {(apps.data ?? []).length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No funded applications.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Announcements() {
+  const qc = useQueryClient();
+  const [message, setMessage] = useState("");
+  const list = useQuery({
+    queryKey: ["admin-announcements"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("announcements").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+  const publish = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("announcements").update({ active: false }).eq("active", true);
+      if (error) throw error;
+      const { error: e2 } = await supabase.from("announcements").insert({ message, active: true });
+      if (e2) throw e2;
+    },
+    onSuccess: () => { setMessage(""); qc.invalidateQueries({ queryKey: ["admin-announcements"] }); qc.invalidateQueries({ queryKey: ["announcement"] }); toast.success("Banner published"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const toggle = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const { error } = await supabase.from("announcements").update({ active }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-announcements"] }); qc.invalidateQueries({ queryKey: ["announcement"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="space-y-3 rounded-xl border bg-card p-6">
+        <Label htmlFor="ann">App-wide banner message</Label>
+        <Input id="ann" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="e.g. Early access: 5% fees with EARLYBIRD this week" maxLength={200} />
+        <Button disabled={!message.trim() || publish.isPending} onClick={() => publish.mutate()}>Publish banner</Button>
+        <p className="text-xs text-muted-foreground">Publishing replaces any currently active banner.</p>
+      </div>
+      {(list.data ?? []).map((a) => (
+        <div key={a.id} className="flex items-center justify-between gap-3 rounded-xl border bg-card p-4">
+          <p className="text-sm">{a.message}</p>
+          <label className="flex shrink-0 items-center gap-2 text-sm"><Switch checked={a.active} onCheckedChange={(v) => toggle.mutate({ id: a.id, active: v })} />{a.active ? "On" : "Off"}</label>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Reports() {
+  const qc = useQueryClient();
+  const reports = useQuery({
+    queryKey: ["admin-reports"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("reports").select("id, reason, resolved, created_at, listing:listings(title), opportunity:opportunities(title)").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+  const resolve = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("reports").update({ resolved: true }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-reports"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const rows = reports.data ?? [];
+  return (
+    <div className="mt-4 space-y-3">
+      {rows.length === 0 && <p className="rounded-xl border bg-card p-6 text-center text-sm text-muted-foreground">No reported content. flagged posts will appear here.</p>}
+      {rows.map((r) => (
+        <div key={r.id} className="flex items-center justify-between gap-3 rounded-xl border bg-card p-4">
+          <div>
+            <p className="text-sm font-medium">{r.listing?.title ?? r.opportunity?.title ?? "Content"}</p>
+            <p className="text-sm text-muted-foreground">{r.reason}</p>
+          </div>
+          {r.resolved ? <span className="text-xs text-muted-foreground">Resolved</span> : <Button size="sm" variant="outline" onClick={() => resolve.mutate(r.id)}>Mark resolved</Button>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Promo() {
   const qc = useQueryClient();
   const [form, setForm] = useState<Form>(blank);
   const [editing, setEditing] = useState(false);
 
   const codes = useQuery({
-    queryKey: ["admin-codes"], enabled: isAdmin,
+    queryKey: ["admin-codes"],
     queryFn: async () => {
       const { data, error } = await supabase.from("promo_codes").select("*").order("created_at", { ascending: false });
       if (error) throw error;
@@ -46,7 +316,7 @@ function Admin() {
     },
   });
   const usage = useQuery({
-    queryKey: ["admin-usage"], enabled: isAdmin,
+    queryKey: ["admin-usage"],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("admin_promo_usage");
       if (error) throw error;
@@ -54,7 +324,7 @@ function Admin() {
     },
   });
   const people = useQuery({
-    queryKey: ["admin-people"], enabled: isAdmin,
+    queryKey: ["admin-people"],
     queryFn: async () => (await supabase.from("profiles").select("id, full_name, company_or_brand_name, user_type")).data ?? [],
   });
 
@@ -91,8 +361,6 @@ function Admin() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (!isAdmin) return <main className="mx-auto max-w-md px-4 py-12 text-muted-foreground">This page is for admins only.</main>;
-
   const name = (id: string | null) => {
     const p = people.data?.find((x) => x.id === id);
     return p ? (p.company_or_brand_name || p.full_name || "Unnamed") : "—";
@@ -100,12 +368,10 @@ function Admin() {
   const set = (k: keyof Form, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-3xl font-semibold">Promo manager</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Create, edit or switch off promo and referral codes. Expiry ends at midnight UK time.</p>
-
-      <form className="mt-6 grid gap-4 rounded-xl border bg-card p-6 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); save.mutate(form); }}>
-        <div className="space-y-2"><Label htmlFor="code">Code</Label><Input id="code" value={form.code} disabled={editing} onChange={(e) => set("code", e.target.value)} placeholder="WEEKEND20" maxLength={20} /></div>
+    <div className="mt-4">
+      <p className="text-sm text-muted-foreground">Create, edit or switch off promo and referral codes. Expiry ends at midnight UK time.</p>
+      <form className="mt-4 grid gap-4 rounded-xl border bg-card p-6 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); save.mutate(form); }}>
+        <div className="space-y-2"><Label htmlFor="code">Code</Label><Input id="code" value={form.code} disabled={editing} onChange={(e) => set("code", e.target.value)} placeholder="BAKE5" maxLength={20} /></div>
         <div className="space-y-2"><Label htmlFor="fee">Commission charged (%)</Label><Input id="fee" type="number" min={0} max={15} step="0.5" value={form.fee} onChange={(e) => set("fee", e.target.value)} /><p className="text-xs text-muted-foreground">Standard is 15%. 5% means a 10-point discount.</p></div>
         <div className="space-y-2">
           <Label htmlFor="max">Usage limit</Label>
@@ -155,6 +421,6 @@ function Admin() {
           </tbody>
         </table>
       </div>
-    </main>
+    </div>
   );
 }
