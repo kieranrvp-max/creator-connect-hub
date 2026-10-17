@@ -16,8 +16,8 @@ export function ReportButton({ kind, id }: { kind: "listing" | "opportunity"; id
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Sign in to report content");
-      const row = kind === "listing" ? { listing_id: id, reason, opportunity_id: null } : { opportunity_id: id, reason, listing_id: null };
-      const { error } = await supabase.from("reports").insert(row);
+      const row = kind === "listing" ? { listing_id: id, reason } : { opportunity_id: id, reason };
+      const { error } = await untyped(supabase).from("reports").insert(row);
       if (error) throw error;
     },
     onSuccess: () => { setDone(true); setOpen(false); toast.success("Thanks — our team will review this."); },
