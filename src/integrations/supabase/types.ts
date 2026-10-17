@@ -89,6 +89,30 @@ export type Database = {
           },
         ]
       }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+        }
+        Relationships: []
+      }
       listings: {
         Row: {
           ad_format: string | null
@@ -474,7 +498,13 @@ export type Database = {
         | "published"
         | "completed"
         | "declined"
-      channel_type: "Newsletter" | "Podcast" | "YouTube" | "Social Media"
+      channel_type:
+        | "Newsletter"
+        | "Podcast"
+        | "YouTube"
+        | "Social Media"
+        | "Instagram"
+        | "TikTok"
       opportunity_status: "open" | "closed"
       payment_status: "unpaid" | "paid" | "refunded"
       social_platform: "tiktok" | "instagram"
@@ -622,7 +652,14 @@ export const Constants = {
         "completed",
         "declined",
       ],
-      channel_type: ["Newsletter", "Podcast", "YouTube", "Social Media"],
+      channel_type: [
+        "Newsletter",
+        "Podcast",
+        "YouTube",
+        "Social Media",
+        "Instagram",
+        "TikTok",
+      ],
       opportunity_status: ["open", "closed"],
       payment_status: ["unpaid", "paid", "refunded"],
       social_platform: ["tiktok", "instagram"],

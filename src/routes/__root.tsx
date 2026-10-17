@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { AdminBar } from "@/components/admin-bar";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,6 +134,7 @@ function RootComponent() {
       <AdminBar />
       <SiteHeader />
       <Outlet />
+      <SiteFooter />
       <Toaster />
     </QueryClientProvider>
   );
