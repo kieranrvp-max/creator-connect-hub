@@ -56,10 +56,18 @@ function AuthPage() {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: String(f.get("email")), password: String(f.get("password")) });
+    const email = String(f.get("email"));
+    const { error } = await supabase.auth.signInWithPassword({ email, password: String(f.get("password")) });
+    if (error?.message.includes("not confirmed")) {
+      setSentEmail(email);
+      const { error: rerr } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: window.location.origin } });
+      setBusy(false);
+      if (rerr) toast.error(rerr.message);
+      else toast.success("Your email is not verified yet. We just sent a fresh confirmation link to your inbox!");
+      return;
+    }
     setBusy(false);
-    if (error?.message.includes("not confirmed")) toast.error("Email not confirmed — tap 'Resend confirmation email' below");
-    else if (error) toast.error(error.message);
+    if (error) toast.error(error.message);
   };
 
   const signUp = async (e: React.FormEvent<HTMLFormElement>) => {

@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          message: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          message: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          message?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           ad_copy: string
@@ -124,6 +145,7 @@ export type Database = {
           description: string | null
           id: string
           niche: string
+          pinned: boolean
           price_per_slot: number
           promo_code: string | null
           proof_screenshot_url: string | null
@@ -139,6 +161,7 @@ export type Database = {
           description?: string | null
           id?: string
           niche: string
+          pinned?: boolean
           price_per_slot: number
           promo_code?: string | null
           proof_screenshot_url?: string | null
@@ -154,6 +177,7 @@ export type Database = {
           description?: string | null
           id?: string
           niche?: string
+          pinned?: boolean
           price_per_slot?: number
           promo_code?: string | null
           proof_screenshot_url?: string | null
@@ -180,6 +204,7 @@ export type Database = {
           description: string | null
           id: string
           niche: string
+          pinned: boolean
           promo_code: string | null
           status: Database["public"]["Enums"]["opportunity_status"]
           title: string
@@ -194,6 +219,7 @@ export type Database = {
           description?: string | null
           id?: string
           niche: string
+          pinned?: boolean
           promo_code?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
           title: string
@@ -208,6 +234,7 @@ export type Database = {
           description?: string | null
           id?: string
           niche?: string
+          pinned?: boolean
           promo_code?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
           title?: string
@@ -303,30 +330,45 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           company_or_brand_name: string | null
           created_at: string
           full_name: string | null
           id: string
+          location: string | null
           stripe_connect_account_id: string | null
+          suspended: boolean
           user_type: Database["public"]["Enums"]["user_type"]
+          verified_badge: boolean
+          website_url: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           company_or_brand_name?: string | null
           created_at?: string
           full_name?: string | null
           id: string
+          location?: string | null
           stripe_connect_account_id?: string | null
+          suspended?: boolean
           user_type?: Database["public"]["Enums"]["user_type"]
+          verified_badge?: boolean
+          website_url?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           company_or_brand_name?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          location?: string | null
           stripe_connect_account_id?: string | null
+          suspended?: boolean
           user_type?: Database["public"]["Enums"]["user_type"]
+          verified_badge?: boolean
+          website_url?: string | null
         }
         Relationships: []
       }
@@ -367,6 +409,51 @@ export type Database = {
             columns: ["referrer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string | null
+          opportunity_id: string | null
+          reason: string
+          reporter_id: string
+          resolved: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          opportunity_id?: string | null
+          reason: string
+          reporter_id?: string
+          resolved?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          opportunity_id?: string | null
+          reason?: string
+          reporter_id?: string
+          resolved?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
         ]
@@ -438,6 +525,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_metrics: {
+        Args: never
+        Returns: {
+          active_deals: number
+          brands: number
+          creators: number
+          gross_volume: number
+          net_revenue: number
+        }[]
+      }
       admin_promo_usage: {
         Args: never
         Returns: {
