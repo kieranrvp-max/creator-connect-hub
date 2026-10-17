@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Megaphone, Radio } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -213,21 +212,6 @@ function OpportunitiesPanel() {
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function FilterSelect({ label, value, onChange, all, options, testId }: { label: string; value: string; onChange: (v: string) => void; all: string; options: readonly string[]; testId: string }) {
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger data-testid={testId}><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{all}</SelectItem>
-          {options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-        </SelectContent>
-      </Select>
     </div>
   );
 }
