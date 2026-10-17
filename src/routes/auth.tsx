@@ -37,6 +37,7 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [userType, setUserType] = useState<"creator" | "sponsor">(role ?? "sponsor");
   const [sent, setSent] = useState(false);
+  const [sentEmail, setSentEmail] = useState<string | null>(null);
 
   const goNext = async (userId: string) => {
     if (redirect) return navigate({ to: redirect });
@@ -57,7 +58,8 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email: String(f.get("email")), password: String(f.get("password")) });
     setBusy(false);
-    if (error) toast.error(error.message);
+    if (error?.message.includes("not confirmed")) toast.error("Email not confirmed — tap 'Resend confirmation email' below");
+    else if (error) toast.error(error.message);
   };
 
   const signUp = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -73,15 +75,24 @@ function AuthPage() {
       },
     });
     setBusy(false);
-    if (error) toast.error(error.message);
-    else setSent(true);
-  };
+  if (error) toast.error(error.message);
+  else { setSentEmail(String(f.get("email"))); setSent(true); }
+};
 
   const forgot = async () => {
     const email = (document.getElementById("si-email") as HTMLInputElement | null)?.value;
     if (!email) { toast.error("Enter your email above first"); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
     if (error) toast.error(error.message); else toast.success("Check your email for a reset link");
+  };
+
+  const resendTo = async (email: string | null) => {
+    if (!email) { toast.error("Enter your email above first"); return; }
+    setBusy(true);
+    const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: window.location.origin } });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else toast.success("Confirmation email sent — check your inbox");
   };
 
   const google = async () => {
@@ -95,7 +106,10 @@ function AuthPage() {
       <p className="mt-2 text-muted-foreground">Book or sell micro-sponsorships in minutes.</p>
       <div className="mt-8 rounded-xl border bg-card p-6">
         {sent ? (
-          <p className="text-center">Check your email to confirm your account, then come back to sign in.</p>
+          <div className="space-y-3 text-center">
+            <p>Check your email to confirm your account, then come back to sign in.</p>
+            <Button variant="outline" className="w-full" disabled={busy} onClick={() => resendTo(sentEmail)}>Resend confirmation email</Button>
+          </div>
         ) : (
           <Tabs defaultValue={role ? "signup" : "signin"}>
             <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="signin">Sign in</TabsTrigger><TabsTrigger value="signup">Create account</TabsTrigger></TabsList>
@@ -105,6 +119,7 @@ function AuthPage() {
                 <div className="space-y-2"><Label htmlFor="si-pw">Password</Label><Input id="si-pw" name="password" type="password" required /></div>
                 <Button type="submit" className="w-full" disabled={busy}>Sign in</Button>
                 <button type="button" className="w-full text-center text-sm text-muted-foreground underline" onClick={forgot}>Forgot password?</button>
+                <button type="button" className="w-full text-center text-sm text-muted-foreground underline" onClick={() => resendTo((document.getElementById("si-email") as HTMLInputElement | null)?.value ?? sentEmail)}>Resend confirmation email</button>
               </form>
             </TabsContent>
             <TabsContent value="signup">
