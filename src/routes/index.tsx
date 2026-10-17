@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListingCard } from "@/components/listing-card";
+import { useAuth } from "@/hooks/use-auth";
 import { listingsQuery } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/")({
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const PROMO = "EARLYBIRD";
+const PROMO_BY_ROLE = { creator: "EARLYBIRD", sponsor: "EARLYBIRDBIZ" } as const;
 
 function Home() {
   return (
@@ -36,9 +37,11 @@ function Home() {
 }
 
 function AnnouncementBanner() {
+  const { user, ready } = useAuth();
+  if (ready && user) return null;
   return (
     <div className="bg-brand-gradient px-4 py-2.5 text-center text-sm font-medium text-white" data-testid="home-announcement-banner">
-      🎉 Early Access: First 10 creators get a reduced 5% commission using code <strong className="font-bold">EARLYBIRD</strong> at checkout!
+      🎉 Early Access: First 10 Creators (code: <strong className="font-bold">EARLYBIRD</strong>) &amp; First 10 Brands (code: <strong className="font-bold">EARLYBIRDBIZ</strong>) get 5% commission rates!
     </div>
   );
 }
