@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { AdminBar } from "@/components/admin-bar";
+import { AnnouncementBanner } from "@/components/announcement-banner";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import appCss from "../styles.css?url";
