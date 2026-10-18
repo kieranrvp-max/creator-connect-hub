@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera } from "lucide-react";
 import { profileQuery } from "@/lib/marketplace";
 import { uploadAvatar, useAvatarUrl } from "@/lib/avatar";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/account")({
   staticData: { sitemap: false },
@@ -29,9 +30,13 @@ export const Route = createFileRoute("/_authenticated/account")({
 });
 
 function Account() {
-  const { user } = Route.useRouteContext();
+  const { user, ready } = useAuth();
   const qc = useQueryClient();
-  const { data: p, isLoading } = useQuery(profileQuery(user.id));
+  const { data: p, isLoading, isError, refetch } = useQuery({
+    ...profileQuery(user?.id ?? ""),
+    enabled: ready && !!user,
+    retry: 1,
+  });
   const fileRef = useRef<HTMLInputElement>(null);
   const [avatarPath, setAvatarPath] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
