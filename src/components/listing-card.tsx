@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { BadgeCheck, Users, MailOpen } from "lucide-react";
+import { BadgeCheck, Users, MailOpen, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SocialBadges } from "@/components/social-badges";
 import { ShareButton } from "@/components/share-button";
 import { DeleteListingButton } from "@/components/delete-listing-button";
+import { CardQuickActions } from "@/components/card-quick-actions";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCount, formatGBP, type ListingWithCreator } from "@/lib/marketplace";
 
@@ -41,7 +42,15 @@ export function ListingCard({ listing }: { listing: ListingWithCreator }) {
         </div>
         <div className="flex items-center gap-1">
           <ShareButton path={`/listing/${listing.id}`} />
-          {isOwner && <DeleteListingButton listingId={listing.id} />}
+          <CardQuickActions kind="listing" id={listing.id} pinned={!!listing.pinned} />
+          {isOwner && (
+            <>
+              <Button asChild type="button" size="sm" variant="ghost" aria-label="Edit this post" data-testid="edit-listing-btn">
+                <Link to="/listing/$id" params={{ id: listing.id }}><Pencil className="size-4" /></Link>
+              </Button>
+              <DeleteListingButton listingId={listing.id} />
+            </>
+          )}
           <Button asChild size="sm">
             <Link to="/listing/$id" params={{ id: listing.id }}>Book Sponsorship</Link>
           </Button>

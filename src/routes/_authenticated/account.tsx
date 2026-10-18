@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera } from "lucide-react";
 import { profileQuery } from "@/lib/marketplace";
 import { uploadAvatar, useAvatarUrl } from "@/lib/avatar";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/account")({
   staticData: { sitemap: false },
@@ -29,9 +30,13 @@ export const Route = createFileRoute("/_authenticated/account")({
 });
 
 function Account() {
-  const { user } = Route.useRouteContext();
+  const { user, ready } = useAuth();
   const qc = useQueryClient();
-  const { data: p, isLoading } = useQuery(profileQuery(user.id));
+  const { data: p, isLoading, isError, refetch } = useQuery({
+    ...profileQuery(user?.id ?? ""),
+    enabled: ready && !!user,
+    retry: 1,
+  });
   const fileRef = useRef<HTMLInputElement>(null);
   const [avatarPath, setAvatarPath] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -42,9 +47,9 @@ function Account() {
     if (!file) return;
     setUploading(true);
     try {
-      const path = await uploadAvatar(user.id, file);
+      const path = await uploadAvatar(user!.id, file);
       setAvatarPath(path);
-      const { error } = await supabase.from("profiles").update({ avatar_url: path }).eq("id", user.id);
+      const { error } = await supabase.from("profiles").update({ avatar_url: path }).eq("id", user!.id);
       if (error) throw error;
       qc.invalidateQueries();
       toast.success("Photo updated");
@@ -67,14 +72,35 @@ function Account() {
           bio: String(f.get("bio")).trim() || null,
           website_url: String(f.get("website")).trim() || null,
         })
-        .eq("id", user.id);
+        .eq("id", user!.id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries(); toast.success("Saved"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (isLoading || !p) return <main className="mx-auto max-w-md px-4 py-12"><Skeleton className="h-72 rounded-xl" /></main>;
+  if (!ready || !user) return <main className="mx-auto max-w-md px-4 py-12"><Skeleton className="h-72 rounded-xl" /></main>;
+
+  if (isError) {
+    return (
+      <main className="mx-auto max-w-md px-4 py-12 text-center">
+        <h1 className="text-2xl font-semibold">We couldn't load your account</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Something went wrong while fetching your profile. Please try again.</p>
+        <Button className="mt-4" onClick={() => refetch()}>Try again</Button>
+      </main>
+    );
+  }
+
+  if (isLoading) return <main className="mx-auto max-w-md px-4 py-12"><Skeleton className="h-72 rounded-xl" /></main>;
+
+  if (!p) {
+    return (
+      <main className="mx-auto max-w-md px-4 py-12 text-center">
+        <h1 className="text-2xl font-semibold">No profile found</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Your account exists but no profile is attached to it yet. Try signing out and back in, or contact support.</p>
+      </main>
+    );
+  }
 
   const initial = (p.full_name || p.company_or_brand_name || user.email || "?").charAt(0).toUpperCase();
 
