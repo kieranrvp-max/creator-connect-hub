@@ -47,9 +47,9 @@ function Account() {
     if (!file) return;
     setUploading(true);
     try {
-      const path = await uploadAvatar(user.id, file);
+      const path = await uploadAvatar(user!.id, file);
       setAvatarPath(path);
-      const { error } = await supabase.from("profiles").update({ avatar_url: path }).eq("id", user.id);
+      const { error } = await supabase.from("profiles").update({ avatar_url: path }).eq("id", user!.id);
       if (error) throw error;
       qc.invalidateQueries();
       toast.success("Photo updated");
@@ -72,7 +72,7 @@ function Account() {
           bio: String(f.get("bio")).trim() || null,
           website_url: String(f.get("website")).trim() || null,
         })
-        .eq("id", user.id);
+        .eq("id", user!.id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries(); toast.success("Saved"); },
