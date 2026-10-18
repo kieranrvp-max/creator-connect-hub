@@ -99,6 +99,13 @@
       "when": 1792247386015,
       "tag": "0013_avatars_bucket_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792284868496,
+      "tag": "0014_profiles_self_insert",
+      "breakpoints": true
     }
   ]
 }
