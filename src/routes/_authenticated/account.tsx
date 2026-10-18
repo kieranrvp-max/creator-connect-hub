@@ -79,7 +79,28 @@ function Account() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (isLoading || !p) return <main className="mx-auto max-w-md px-4 py-12"><Skeleton className="h-72 rounded-xl" /></main>;
+  if (!ready || !user) return <main className="mx-auto max-w-md px-4 py-12"><Skeleton className="h-72 rounded-xl" /></main>;
+
+  if (isError) {
+    return (
+      <main className="mx-auto max-w-md px-4 py-12 text-center">
+        <h1 className="text-2xl font-semibold">We couldn't load your account</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Something went wrong while fetching your profile. Please try again.</p>
+        <Button className="mt-4" onClick={() => refetch()}>Try again</Button>
+      </main>
+    );
+  }
+
+  if (isLoading) return <main className="mx-auto max-w-md px-4 py-12"><Skeleton className="h-72 rounded-xl" /></main>;
+
+  if (!p) {
+    return (
+      <main className="mx-auto max-w-md px-4 py-12 text-center">
+        <h1 className="text-2xl font-semibold">No profile found</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Your account exists but no profile is attached to it yet. Try signing out and back in, or contact support.</p>
+      </main>
+    );
+  }
 
   const initial = (p.full_name || p.company_or_brand_name || user.email || "?").charAt(0).toUpperCase();
 
