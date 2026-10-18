@@ -7,25 +7,26 @@ const linkCls = "relative shrink-0 whitespace-nowrap text-sm hover:text-foregrou
 const inactiveCls = { className: "text-muted-foreground" };
 const activeCls = { className: "shrink-0 whitespace-nowrap text-sm font-semibold text-foreground after:absolute after:-bottom-1.5 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-brand-gradient" };
 
-const LINKS = [
-  { to: "/", label: "Home", exact: true },
-  { to: "/explore", label: "Explore" },
-  { to: "/how-it-works", label: "How it works" },
-  { to: "/contact", label: "Contact" },
-  { to: "/dashboard/creator", label: "Creator" },
-  { to: "/dashboard/sponsor", label: "Brand" },
-] as const;
-
 function NavLinks({ className, prefix }: { className: string; prefix: string }) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const dashboardTo = profile?.user_type === "creator" ? "/dashboard/creator" : "/dashboard/sponsor";
   return (
     <nav className={className}>
-      {LINKS.map((l) => (
-        <Link key={l.to} to={l.to} className={linkCls} activeProps={activeCls} inactiveProps={inactiveCls} activeOptions={{ exact: "exact" in l }} data-testid={`${prefix}-nav-${l.label.toLowerCase().replace(/\s+/g, "-")}`}>
-          {l.label}
-        </Link>
-      ))}
-      {user && <Link to="/account" className={linkCls} activeProps={activeCls} inactiveProps={inactiveCls} data-testid={`${prefix}-nav-account`}>Account</Link>}
+      <Link to="/explore" className={linkCls} activeProps={activeCls} inactiveProps={inactiveCls} data-testid={`${prefix}-nav-explore`}>Explore</Link>
+      <Link to="/how-it-works" className={linkCls} activeProps={activeCls} inactiveProps={inactiveCls} data-testid={`${prefix}-nav-how-it-works`}>How It Works</Link>
+      {!user && (
+        <>
+          <Link to="/auth" search={{ role: "sponsor" }} className={linkCls} inactiveProps={inactiveCls} data-testid={`${prefix}-nav-brands`}>Brands</Link>
+          <Link to="/auth" search={{ role: "creator" }} className={linkCls} inactiveProps={inactiveCls} data-testid={`${prefix}-nav-creators`}>Creators</Link>
+        </>
+      )}
+      <Link to="/contact" className={linkCls} activeProps={activeCls} inactiveProps={inactiveCls} data-testid={`${prefix}-nav-contact`}>Contact</Link>
+      {user && (
+        <>
+          <Link to={dashboardTo} className={linkCls} activeProps={activeCls} inactiveProps={inactiveCls} data-testid={`${prefix}-nav-dashboard`}>Dashboard</Link>
+          <Link to="/account" className={linkCls} activeProps={activeCls} inactiveProps={inactiveCls} data-testid={`${prefix}-nav-account`}>Account</Link>
+        </>
+      )}
     </nav>
   );
 }

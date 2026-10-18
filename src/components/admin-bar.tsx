@@ -16,12 +16,16 @@ export function AdminBar() {
   });
   if (!isAdmin) return null;
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 bg-primary px-4 py-1.5 text-xs text-primary-foreground">
-      <span className="font-semibold">Admin</span>
-      <span>Users: {data?.total_users ?? "–"}</span>
-      <span>Listings: {data?.active_listings ?? "–"}</span>
-      <span>Deals completed: {data?.deals_completed ?? "–"}</span>
-      <Link to="/admin" className="underline underline-offset-2">Promo manager</Link>
+    <div className="bg-primary text-xs text-primary-foreground">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-2">
+        <span className="font-semibold">Admin</span>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+          <span>Users: {data?.total_users ?? "–"}</span>
+          <span>Listings: {data?.active_listings ?? "–"}</span>
+          <span>Deals completed: {data?.deals_completed ?? "–"}</span>
+          <Link to="/admin" className="underline underline-offset-2">Promo manager</Link>
+        </div>
+      </div>
     </div>
   );
 }
