@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
+import { SOCIAL_PLATFORMS, parseSocialLinks, safeUrl, type SocialLink } from "@/components/profile-social-links";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,23 @@ function Account() {
     enabled: ready && !!user,
     retry: 1,
   });
+  const [creating, setCreating] = useState(false);
+  const [links, setLinks] = useState<SocialLink[] | null>(null);
+  useEffect(() => {
+    if (!ready || !user || isLoading || isError || p || creating) return;
+    setCreating(true);
+    const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+    const role = meta["user_type"] === "creator" ? "creator" : "sponsor";
+    supabase.from("profiles").upsert({
+      id: user.id,
+      full_name: typeof meta["full_name"] === "string" ? meta["full_name"] : null,
+      user_type: role, location: null, avatar_url: null, social_links: [],
+    }, { onConflict: "id", ignoreDuplicates: true }).then(({ error }) => {
+      if (error) toast.error("Couldn't create your profile: " + error.message);
+      refetch().finally(() => setCreating(false));
+    });
+  }, [ready, user, isLoading, isError, p, creating, refetch]);
+  const socialLinks = links ?? parseSocialLinks(p?.social_links);
   const fileRef = useRef<HTMLInputElement>(null);
   const [avatarPath, setAvatarPath] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -71,6 +90,10 @@ function Account() {
           location: String(f.get("location")).trim() || null,
           bio: String(f.get("bio")).trim() || null,
           website_url: String(f.get("website")).trim() || null,
+          social_links: socialLinks.filter((l) => l.url.trim()).map((l) => {
+            if (!safeUrl(l.url)) throw new Error(`"${l.url}" isn't a valid link — start it with https://`);
+            return { platform: l.platform, url: l.url.trim(), label: l.label.trim() };
+          }),
         })
         .eq("id", user!.id);
       if (error) throw error;
@@ -93,14 +116,8 @@ function Account() {
 
   if (isLoading) return <main className="mx-auto max-w-md px-4 py-12"><Skeleton className="h-72 rounded-xl" /></main>;
 
-  if (!p) {
-    return (
-      <main className="mx-auto max-w-md px-4 py-12 text-center">
-        <h1 className="text-2xl font-semibold">No profile found</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Your account exists but no profile is attached to it yet. Try signing out and back in, or contact support.</p>
-      </main>
-    );
-  }
+  if (!p) return <main className="mx-auto max-w-md px-4 py-12"><Skeleton className="h-72 rounded-xl" /><p className="mt-3 text-center text-sm text-muted-foreground">Setting up your profile…</p></main>;
+  const setLink = (i: number, patch: Partial<SocialLink>) => setLinks(socialLinks.map((l, j) => (j === i ? { ...l, ...patch } : l)));
 
   const initial = (p.full_name || p.company_or_brand_name || user.email || "?").charAt(0).toUpperCase();
 
@@ -132,6 +149,25 @@ function Account() {
           <Textarea id="bio" name="bio" defaultValue={p.bio ?? ""} rows={4} maxLength={500} />
         </div>
         <div className="space-y-2"><Label htmlFor="website">Website link</Label><Input id="website" name="website" type="url" defaultValue={p.website_url ?? ""} placeholder="https://" /></div>
+        <div className="space-y-2">
+          <Label>Social links</Label>
+          <p className="text-xs text-muted-foreground">Add a link and the text people will see (e.g. @yourname).</p>
+          {socialLinks.map((l, i) => (
+            <div key={i} className="space-y-2 rounded-lg border p-3">
+              <div className="flex gap-2">
+                <select aria-label="Platform" value={l.platform} onChange={(e) => setLink(i, { platform: e.target.value })} className="h-9 rounded-md border bg-background px-2 text-sm">
+                  {SOCIAL_PLATFORMS.map((o) => <option key={o}>{o}</option>)}
+                </select>
+                <Input aria-label="Display label" placeholder="@username" value={l.label} maxLength={60} onChange={(e) => setLink(i, { label: e.target.value })} />
+                <Button type="button" variant="ghost" size="icon" aria-label="Remove link" onClick={() => setLinks(socialLinks.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+              <Input aria-label="Social URL" type="url" placeholder="https://instagram.com/yourname" value={l.url} maxLength={300} onChange={(e) => setLink(i, { url: e.target.value })} />
+            </div>
+          ))}
+          {socialLinks.length < 8 && (
+            <Button type="button" variant="outline" size="sm" onClick={() => setLinks([...socialLinks, { platform: "Instagram", url: "", label: "" }])}><Plus className="mr-1 h-4 w-4" />Add social link</Button>
+          )}
+        </div>
         <Button type="submit" disabled={save.isPending}>Save changes</Button>
       </form>
     </main>
