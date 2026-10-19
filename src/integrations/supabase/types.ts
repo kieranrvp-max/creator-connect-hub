@@ -336,6 +336,7 @@ export type Database = {
           full_name: string | null
           id: string
           location: string | null
+          social_links: Json
           stripe_connect_account_id: string | null
           suspended: boolean
           user_type: Database["public"]["Enums"]["user_type"]
@@ -350,6 +351,7 @@ export type Database = {
           full_name?: string | null
           id: string
           location?: string | null
+          social_links?: Json
           stripe_connect_account_id?: string | null
           suspended?: boolean
           user_type?: Database["public"]["Enums"]["user_type"]
@@ -364,6 +366,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           location?: string | null
+          social_links?: Json
           stripe_connect_account_id?: string | null
           suspended?: boolean
           user_type?: Database["public"]["Enums"]["user_type"]
