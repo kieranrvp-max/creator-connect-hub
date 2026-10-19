@@ -48,7 +48,7 @@ function Account() {
     const role = meta["user_type"] === "creator" ? "creator" : "sponsor";
     supabase.from("profiles").upsert({
       id: user.id,
-      full_name: typeof meta["full_name"] === "string" ? meta["full_name"] : null,
+      full_name: typeof meta["full_name"] === "string" && meta["full_name"] ? meta["full_name"] : (user.email?.split("@")[0] ?? null),
       user_type: role, location: null, avatar_url: null, social_links: [],
     }, { onConflict: "id", ignoreDuplicates: true }).then(({ error }) => {
       if (error) toast.error("Couldn't create your profile: " + error.message);
