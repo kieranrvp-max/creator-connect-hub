@@ -41,7 +41,7 @@ function Admin() {
       <h1 className="text-3xl font-semibold">Admin dashboard</h1>
       <p className="mt-1 text-sm text-muted-foreground">Platform controls for Creator Connect.</p>
       <Tabs defaultValue="overview" className="mt-6">
-        <TabsList className="flex w-full flex-nowrap justify-start gap-2 overflow-x-auto pb-2">
+        <TabsList className="flex w-full flex-nowrap justify-start gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x pb-2">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="escrow">Escrow</TabsTrigger>

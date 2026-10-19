@@ -49,7 +49,7 @@ export const formatGBP = (n: number) =>
 export const formatCount = (n: number) => new Intl.NumberFormat("en-GB", { notation: "compact" }).format(n);
 export const formatDate = (d: string) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
-const LISTING_SELECT = "*, creator:profiles!listings_creator_id_fkey(full_name, company_or_brand_name, socials:social_accounts!social_accounts_creator_id_fkey(platform, handle, followers, avg_views, verified))";
+const LISTING_SELECT = "*, creator:profiles!listings_creator_id_fkey(full_name, company_or_brand_name, social_links, socials:social_accounts!social_accounts_creator_id_fkey(platform, handle, followers, avg_views, verified))";
 // Used until the social_accounts migration is applied.
 const LISTING_SELECT_BASIC = "*, creator:profiles!listings_creator_id_fkey(full_name, company_or_brand_name)";
 const withSocials = (l: ListingRow & { creator: NameRef | null }): ListingWithCreator => ({ ...l, creator: l.creator ? { ...l.creator, socials: [] } : null });
@@ -121,7 +121,7 @@ export const profileQuery = (userId: string) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, user_type, full_name, avatar_url, company_or_brand_name, location, bio, website_url, verified_badge, suspended")
+        .select("id, user_type, full_name, avatar_url, company_or_brand_name, location, bio, website_url, verified_badge, suspended, social_links")
         .eq("id", userId)
         .maybeSingle();
       if (error) throw error;
