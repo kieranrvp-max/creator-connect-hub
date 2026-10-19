@@ -22,6 +22,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
 import { Route as OpportunityIdRouteImport } from './routes/opportunity.$id'
+import { Route as AuthenticatedBriefsNewRouteImport } from './routes/_authenticated/briefs.new'
 import { Route as AuthenticatedDashboardCreatorRouteImport } from './routes/_authenticated/dashboard.creator'
 import { Route as AuthenticatedDashboardSponsorRouteImport } from './routes/_authenticated/dashboard.sponsor'
 import { Route as ApiPublicJobsExpireRequestsRouteImport } from './routes/api/public/jobs/expire-requests'
@@ -93,6 +94,11 @@ const OpportunityIdRoute = OpportunityIdRouteImport.update({
   path: '/opportunity/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedBriefsNewRoute = AuthenticatedBriefsNewRouteImport.update({
+  id: '/briefs/new',
+  path: '/briefs/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardCreatorRoute =
   AuthenticatedDashboardCreatorRouteImport.update({
     id: '/dashboard/creator',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
   '/opportunity/$id': typeof OpportunityIdRoute
+  '/briefs/new': typeof AuthenticatedBriefsNewRoute
   '/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
   '/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
   '/api/public/jobs/expire-requests': typeof ApiPublicJobsExpireRequestsRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
   '/opportunity/$id': typeof OpportunityIdRoute
+  '/briefs/new': typeof AuthenticatedBriefsNewRoute
   '/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
   '/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
   '/api/public/jobs/expire-requests': typeof ApiPublicJobsExpireRequestsRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/checkout/return': typeof CheckoutReturnRoute
   '/listing/$id': typeof ListingIdRoute
   '/opportunity/$id': typeof OpportunityIdRoute
+  '/_authenticated/briefs/new': typeof AuthenticatedBriefsNewRoute
   '/_authenticated/dashboard/creator': typeof AuthenticatedDashboardCreatorRoute
   '/_authenticated/dashboard/sponsor': typeof AuthenticatedDashboardSponsorRoute
   '/api/public/jobs/expire-requests': typeof ApiPublicJobsExpireRequestsRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/listing/$id'
     | '/opportunity/$id'
+    | '/briefs/new'
     | '/dashboard/creator'
     | '/dashboard/sponsor'
     | '/api/public/jobs/expire-requests'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/listing/$id'
     | '/opportunity/$id'
+    | '/briefs/new'
     | '/dashboard/creator'
     | '/dashboard/sponsor'
     | '/api/public/jobs/expire-requests'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/listing/$id'
     | '/opportunity/$id'
+    | '/_authenticated/briefs/new'
     | '/_authenticated/dashboard/creator'
     | '/_authenticated/dashboard/sponsor'
     | '/api/public/jobs/expire-requests'
@@ -365,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpportunityIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/briefs/new': {
+      id: '/_authenticated/briefs/new'
+      path: '/briefs/new'
+      fullPath: '/briefs/new'
+      preLoaderRoute: typeof AuthenticatedBriefsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/creator': {
       id: '/_authenticated/dashboard/creator'
       path: '/dashboard/creator'
@@ -413,6 +432,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedBriefsNewRoute: typeof AuthenticatedBriefsNewRoute
   AuthenticatedDashboardCreatorRoute: typeof AuthenticatedDashboardCreatorRoute
   AuthenticatedDashboardSponsorRoute: typeof AuthenticatedDashboardSponsorRoute
 }
@@ -420,6 +440,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedBriefsNewRoute: AuthenticatedBriefsNewRoute,
   AuthenticatedDashboardCreatorRoute: AuthenticatedDashboardCreatorRoute,
   AuthenticatedDashboardSponsorRoute: AuthenticatedDashboardSponsorRoute,
 }
