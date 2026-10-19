@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCount, formatGBP, listingQuery } from "@/lib/marketplace";
+import { ProfileSocialLinks } from "@/components/profile-social-links";
 
 export const Route = createFileRoute("/listing/$id")({
   staticData: { sitemap: true },
@@ -104,6 +105,7 @@ function ListingPage() {
           <div className="flex gap-2"><Badge>{listing.channel_type}</Badge><Badge variant="outline">{listing.niche}</Badge></div>
           <h1 className="mt-4 text-4xl font-semibold md:text-5xl">{listing.title}</h1>
           <p className="mt-2 text-muted-foreground">by {listing.creator?.company_or_brand_name || listing.creator?.full_name || "Creator"}</p>
+          <ProfileSocialLinks links={(listing.creator as { social_links?: unknown } | null)?.social_links} />
           {listing.description && <p className="mt-6 text-lg leading-relaxed">{listing.description}</p>}
 
           <h2 className="mt-10 flex items-center gap-2 text-2xl font-semibold">

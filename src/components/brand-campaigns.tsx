@@ -25,14 +25,14 @@ import { ApplicationBadge } from "@/components/application-badge";
 import { CHANNELS, NICHES, brandOpportunitiesQuery, formatGBP, type BrandApplication, type BrandOpportunity, type ChannelType } from "@/lib/marketplace";
 import { untyped } from "@/lib/db-untyped";
 
-export function BrandCampaigns({ userId }: { userId: string }) {
+export function BrandCampaigns({ userId, openNew = false }: { userId: string; openNew?: boolean }) {
   const { data: opps = [], isLoading, error } = useQuery(brandOpportunitiesQuery(userId));
   const [funding, setFunding] = useState<BrandApplication | null>(null);
   return (
     <section data-testid="brand-campaigns">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">Post briefs, review creator pitches and pay securely through escrow.</p>
-        <NewOpportunityDialog userId={userId} />
+        <NewOpportunityDialog userId={userId} defaultOpen={openNew} />
       </div>
       <div className="mt-6 space-y-5">
         {isLoading && <Skeleton className="h-40 rounded-xl" />}
@@ -192,8 +192,8 @@ function FundDialog({ app, onClose }: { app: BrandApplication | null; onClose: (
   );
 }
 
-function NewOpportunityDialog({ userId }: { userId: string }) {
-  const [open, setOpen] = useState(false);
+function NewOpportunityDialog({ userId, defaultOpen = false }: { userId: string; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   const [niche, setNiche] = useState("Lifestyle");
   const [channel, setChannel] = useState<ChannelType | "any">("any");
   const qc = useQueryClient();

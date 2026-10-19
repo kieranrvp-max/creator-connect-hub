@@ -193,7 +193,7 @@ function OpportunitiesPanel() {
           <p className="font-semibold">Are you a brand?</p>
           <p className="mt-1 text-muted-foreground">Post a campaign brief and let creators pitch to you.</p>
           <Button asChild size="sm" className="mt-3 border-0 bg-brand-gradient text-white" data-testid="opp-post-brief-btn">
-            <Link to="/dashboard/sponsor" search={{ tab: "campaigns" }}>Post a brief</Link>
+            <Link to="/briefs/new">Post a brief</Link>
           </Button>
         </div>
       </aside>
