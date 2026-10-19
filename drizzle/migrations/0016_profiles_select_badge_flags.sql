@@ -1,0 +1,1 @@
+GRANT SELECT (verified_badge, suspended) ON public.profiles TO anon, authenticated;
