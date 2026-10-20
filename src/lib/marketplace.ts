@@ -34,6 +34,8 @@ export type CreatorApplication = Application & { opportunity: { id: string; titl
 export const ROLE_LABEL: Record<UserType, string> = { creator: "Creator", sponsor: "Brand / Business" };
 
 export const CHANNELS: ChannelType[] = ["Instagram", "TikTok", "YouTube", "Newsletter", "Podcast", "Social Media"];
+/** Newsletters report open rate; every other channel stores engagement rate in the same field. */
+export const rateLabel = (channel: string) => (channel === "Newsletter" ? "Open rate" : "Engagement rate");
 export const NICHES = ["Tech", "Lifestyle", "Food & Drink", "Beauty", "Fitness", "Finance", "Fashion", "Travel", "Gaming", "Design", "Health", "Parenting"];
 
 export const SUPPORT_EMAIL = "kieran@creatorconnecthub.co.uk";
