@@ -1,8 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { BrandCampaigns } from "@/components/brand-campaigns";
+
+export const BRIEFS_RESERVED_MSG = "Brief creation is reserved for Brand accounts.";
 
 export const Route = createFileRoute("/_authenticated/briefs/new")({
   staticData: { sitemap: false },
+  beforeLoad: async ({ context }) => {
+    const [{ data: profile }, { data: isAdmin }] = await Promise.all([
+      supabase.from("profiles").select("user_type").eq("id", context.user.id).maybeSingle(),
+      supabase.rpc("has_role", { _user_id: context.user.id, _role: "admin" }),
+    ]);
+    if (profile?.user_type === "creator" && !isAdmin) {
+      toast.error(BRIEFS_RESERVED_MSG);
+      throw redirect({ to: "/explore", search: { tab: "opportunities" } });
+    }
+  },
   head: () => ({
     meta: [
       { title: "Post a campaign brief — Creator Connect" },

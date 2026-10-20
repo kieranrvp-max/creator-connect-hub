@@ -11,6 +11,8 @@ import { CHANNELS, NICHES, formatGBP, listingsQuery, opportunitiesQuery } from "
 import { OpportunityCard } from "@/components/opportunity-card";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/use-auth";
+import { useIsAdmin } from "@/hooks/use-admin";
 
 type Tab = "slots" | "opportunities";
 
@@ -171,6 +173,9 @@ function SlotsPanel() {
 function OpportunitiesPanel() {
   const [niches, setNiches] = useState<string[]>([]);
   const [minBudget, setMinBudget] = useState(0);
+  const { user, ready, profile } = useAuth();
+  const isAdmin = useIsAdmin();
+  const showBriefCta = ready && (!user || isAdmin || profile?.user_type === "sponsor");
   const { data: opps = [], isLoading, error } = useQuery(opportunitiesQuery());
   const results = useMemo(
     () => opps.filter((o) => (niches.length === 0 || niches.includes(o.niche)) && Number(o.budget) >= minBudget),
@@ -189,13 +194,15 @@ function OpportunitiesPanel() {
           <Slider min={0} max={BUDGET_MAX} step={50} value={[minBudget]} onValueChange={(v) => setMinBudget(v[0] ?? 0)} data-testid="opp-filter-min-budget" />
         </div>
         <Button variant="ghost" size="sm" data-testid="opp-filter-reset-btn" onClick={() => { setNiches([]); setMinBudget(0); }}>Reset filters</Button>
-        <div className="rounded-xl border border-[#EC4899]/25 bg-[#EC4899]/5 p-4 text-sm">
+        {showBriefCta && (
+        <div className="rounded-xl border border-[#EC4899]/25 bg-[#EC4899]/5 p-4 text-sm" data-testid="opp-brief-cta">
           <p className="font-semibold">Are you a brand?</p>
           <p className="mt-1 text-muted-foreground">Post a campaign brief and let creators pitch to you.</p>
           <Button asChild size="sm" className="mt-3 border-0 bg-brand-gradient text-white" data-testid="opp-post-brief-btn">
             <Link to="/briefs/new">Post a brief</Link>
           </Button>
         </div>
+        )}
       </aside>
 
       <section>
