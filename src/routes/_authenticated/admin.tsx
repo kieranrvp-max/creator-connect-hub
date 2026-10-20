@@ -10,6 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatGBP } from "@/lib/marketplace";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { STANDARD_FEE_PCT, discountFromFeeRate, feeRateFromDiscount, promoSplit } from "@/lib/promo-math";
 import { ukDayBefore, ukMidnightAfter } from "@/lib/uk-time";
 import { adminRefundApplication, adminRefundBooking, adminReleaseApplication } from "@/utils/admin.functions";
 
@@ -31,7 +35,47 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 type Code = { code: string; fee_rate: number; max_uses: number | null; active: boolean; expires_at: string | null; referrer_id: string | null; referral_rate: number };
 type Form = { code: string; fee: string; unlimited: boolean; maxUses: string; expiry: string; referrer: string; referralPct: string; active: boolean };
-const blank: Form = { code: "", fee: "5", unlimited: false, maxUses: "10", expiry: "", referrer: "", referralPct: "0", active: true };
+const blank: Form = { code: "", fee: "5", unlimited: false, maxUses: "10", expiry: "", referrer: "", referralPct: "2.5", active: true };
+
+type Person = { id: string; full_name: string | null; company_or_brand_name: string | null; user_type: string; email: string | null };
+
+function ReferrerPicker({ people, value, onChange }: { people: Person[]; value: string; onChange: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const label = (p: Person) => p.company_or_brand_name || p.full_name || p.email || "Unnamed";
+  const current = people.find((p) => p.id === value);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button type="button" variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between font-normal" data-testid="referrer-picker">
+          <span className="truncate">{current ? label(current) : "No referrer"}</span>
+          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] min-w-72 p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search name or email…" />
+          <CommandList>
+            <CommandEmpty>No users found.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem value="__none no referrer" onSelect={() => { onChange(""); setOpen(false); }}>
+                <Check className={`mr-2 size-4 ${value ? "opacity-0" : "opacity-100"}`} />No referrer
+              </CommandItem>
+              {people.map((p) => (
+                <CommandItem key={p.id} value={`${p.id} ${p.full_name ?? ""} ${p.company_or_brand_name ?? ""} ${p.email ?? ""}`} onSelect={() => { onChange(p.id); setOpen(false); }}>
+                  <Check className={`mr-2 size-4 shrink-0 ${value === p.id ? "opacity-100" : "opacity-0"}`} />
+                  <div className="min-w-0">
+                    <p className="truncate">{label(p)} <span className="text-xs text-muted-foreground">({p.user_type === "creator" ? "Creator" : "Brand"})</span></p>
+                    {p.email && <p className="truncate text-xs text-muted-foreground">{p.email}</p>}
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function Admin() {
   const isAdmin = useIsAdmin();
@@ -418,14 +462,14 @@ function Promo() {
               return (
                 <tr key={c.code} className="border-t">
                   <td className="p-3 font-mono font-semibold">{c.code}</td>
-                  <td className="p-3">{Math.round(c.fee_rate * 1000) / 10}%</td>
+                  <td className="whitespace-nowrap p-3">{Math.round(c.fee_rate * 1000) / 10}% <span className="text-xs text-muted-foreground">(−{discountFromFeeRate(c.fee_rate)}%)</span></td>
                   <td className="p-3">{u?.uses ?? 0} / {c.max_uses ?? "∞"}</td>
                   <td className="p-3">{c.expires_at ? `End of ${ukDayBefore(c.expires_at)}` : "Never"}</td>
                   <td className="p-3">{name(c.referrer_id)}</td>
                   <td className="p-3">{formatGBP(Number(u?.referral_earnings ?? 0))}</td>
                   <td className="p-3">{expired ? "Expired" : c.active ? "Active" : "Off"}</td>
                   <td className="space-x-1 whitespace-nowrap p-3 text-right">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditing(true); setForm({ code: c.code, fee: String(c.fee_rate * 100), unlimited: c.max_uses === null, maxUses: String(c.max_uses ?? 10), expiry: c.expires_at ? ukDayBefore(c.expires_at) : "", referrer: c.referrer_id ?? "", referralPct: String(c.referral_rate * 100), active: c.active }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Edit</Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setEditing(true); setForm({ code: c.code, fee: String(discountFromFeeRate(c.fee_rate)), unlimited: c.max_uses === null, maxUses: String(c.max_uses ?? 10), expiry: c.expires_at ? ukDayBefore(c.expires_at) : "", referrer: c.referrer_id ?? "", referralPct: String(Math.round(c.referral_rate * 10000) / 100), active: c.active }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Edit</Button>
                     <Button size="sm" variant="outline" onClick={() => toggle.mutate(c)}>{c.active ? "Disable" : "Enable"}</Button>
                   </td>
                 </tr>
