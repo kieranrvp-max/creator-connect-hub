@@ -555,6 +555,16 @@ export type Database = {
           total_users: number
         }[]
       }
+      admin_user_directory: {
+        Args: never
+        Returns: {
+          company_or_brand_name: string
+          email: string
+          full_name: string
+          id: string
+          user_type: string
+        }[]
+      }
       can_view_profile: { Args: { _profile_id: string }; Returns: boolean }
       creator_date_taken: {
         Args: { _date: string; _exclude?: string; _listing_id: string }
@@ -574,6 +584,15 @@ export type Database = {
         Returns: boolean
       }
       listing_fee_rate: { Args: { _listing_id: string }; Returns: number }
+      my_referral_earnings: {
+        Args: never
+        Returns: {
+          code: string
+          earnings: number
+          gross: number
+          uses: number
+        }[]
+      }
       opportunity_fee_rate: {
         Args: { _opportunity_id: string }
         Returns: number
