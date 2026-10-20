@@ -37,11 +37,11 @@ type Code = { code: string; fee_rate: number; max_uses: number | null; active: b
 type Form = { code: string; fee: string; unlimited: boolean; maxUses: string; expiry: string; referrer: string; referralPct: string; active: boolean };
 const blank: Form = { code: "", fee: "5", unlimited: false, maxUses: "10", expiry: "", referrer: "", referralPct: "2.5", active: true };
 
-type Person = { id: string; full_name: string | null; company_or_brand_name: string | null; user_type: string; email: string | null };
+type DirectoryPerson = { id: string; full_name: string | null; company_or_brand_name: string | null; user_type: string; email: string | null };
 
-function ReferrerPicker({ people, value, onChange }: { people: Person[]; value: string; onChange: (id: string) => void }) {
+function ReferrerPicker({ people, value, onChange }: { people: DirectoryPerson[]; value: string; onChange: (id: string) => void }) {
   const [open, setOpen] = useState(false);
-  const label = (p: Person) => p.company_or_brand_name || p.full_name || p.email || "Unnamed";
+  const label = (p: DirectoryPerson) => p.company_or_brand_name || p.full_name || p.email || "Unnamed";
   const current = people.find((p) => p.id === value);
   return (
     <Popover open={open} onOpenChange={setOpen}>
