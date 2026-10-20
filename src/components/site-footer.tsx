@@ -15,6 +15,8 @@ export function SiteFooter() {
           <Link to="/explore" className="hover:text-foreground">Explore</Link>
           <Link to="/how-it-works" className="hover:text-foreground">How it works</Link>
           <Link to="/contact" className="hover:text-foreground">Contact us</Link>
+          <Link to="/privacy" className="hover:text-foreground" data-testid="footer-privacy">Privacy Policy</Link>
+          <Link to="/terms" className="hover:text-foreground" data-testid="footer-terms">Terms &amp; Conditions</Link>
           <button type="button" onClick={() => setOpen(true)} className="hover:text-foreground">Quick message</button>
           <a href={`mailto:${SUPPORT_EMAIL}`} aria-label="Email support" className="hover:text-foreground"><Mail className="h-4 w-4" /></a>
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label="Instagram @joincreatorconnect" className="hover:text-foreground"><Instagram className="h-4 w-4" /></a>

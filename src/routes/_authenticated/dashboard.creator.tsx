@@ -20,7 +20,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { DealTracker } from "@/components/deal-tracker";
 import { DeleteListingButton } from "@/components/delete-listing-button";
 import {
-  CHANNELS, NICHES, creatorBookingsQuery, myApplicationsQuery, type CreatorApplication, formatDate, formatGBP, myListingsQuery, profileQuery,
+  CHANNELS, NICHES, creatorBookingsQuery, myApplicationsQuery, type CreatorApplication, formatDate, formatGBP, myListingsQuery, profileQuery, rateLabel,
   type BookingStatus, type ChannelType, type CreatorBooking,
 } from "@/lib/marketplace";
 import { untyped } from "@/lib/db-untyped";
@@ -261,7 +261,7 @@ function NewListingDialog({ userId }: { userId: string }) {
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2"><Label htmlFor="a">Audience</Label><Input id="a" name="audience" type="number" min={0} required /></div>
-            <div className="space-y-2"><Label htmlFor="o">Open rate %</Label><Input id="o" name="open_rate" type="number" step="0.1" min={0} max={100} /></div>
+            <div className="space-y-2"><Label htmlFor="o">{rateLabel(channel)} %</Label><Input key={channel === "Newsletter" ? "open" : "engagement"} id="o" name="open_rate" type="number" step="0.1" min={0} max={100} data-testid="listing-rate-input" /></div>
             <div className="space-y-2"><Label htmlFor="p">Price (£)</Label><Input id="p" name="price" type="number" min={1} step="0.01" required /></div>
           </div>
           <div className="space-y-2"><Label htmlFor="f">Ad format</Label><Input id="f" name="format" placeholder="100-word main sponsor section with 1 link" /></div>

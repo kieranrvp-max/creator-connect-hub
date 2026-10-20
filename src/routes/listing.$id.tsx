@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatCount, formatGBP, listingQuery } from "@/lib/marketplace";
+import { formatCount, formatGBP, listingQuery, rateLabel } from "@/lib/marketplace";
 import { ProfileSocialLinks } from "@/components/profile-social-links";
 
 export const Route = createFileRoute("/listing/$id")({
@@ -118,7 +118,7 @@ function ListingPage() {
           </h2>
           <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
             <Stat label="Audience" value={formatCount(listing.audience_size)} />
-            <Stat label="Avg. open rate" value={listing.avg_open_rate != null ? `${listing.avg_open_rate}%` : "—"} />
+            <Stat label={`Avg. ${rateLabel(listing.channel_type).toLowerCase()}`} value={listing.avg_open_rate != null ? `${listing.avg_open_rate}%` : "—"} />
             <Stat label="Price per slot" value={formatGBP(price)} />
           </div>
 

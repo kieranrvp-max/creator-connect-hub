@@ -120,6 +120,13 @@
       "when": 1792370880964,
       "tag": "0016_profiles_select_badge_flags",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792455898123,
+      "tag": "0017_referral_balance_and_admin_directory",
+      "breakpoints": true
     }
   ]
 }

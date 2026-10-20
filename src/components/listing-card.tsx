@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { BadgeCheck, Users, MailOpen, Pencil } from "lucide-react";
+import { BadgeCheck, Users, MailOpen, Pencil, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SocialBadges } from "@/components/social-badges";
@@ -7,7 +7,7 @@ import { ShareButton } from "@/components/share-button";
 import { DeleteListingButton } from "@/components/delete-listing-button";
 import { CardQuickActions } from "@/components/card-quick-actions";
 import { useAuth } from "@/hooks/use-auth";
-import { formatCount, formatGBP, type ListingWithCreator } from "@/lib/marketplace";
+import { formatCount, formatGBP, rateLabel, type ListingWithCreator } from "@/lib/marketplace";
 
 export function ListingCard({ listing }: { listing: ListingWithCreator }) {
   const { user } = useAuth();
@@ -31,7 +31,7 @@ export function ListingCard({ listing }: { listing: ListingWithCreator }) {
           <dd className="mt-1 font-semibold">{formatCount(listing.audience_size)}</dd>
         </div>
         <div className="rounded-lg bg-muted p-3">
-          <dt className="flex items-center gap-1 text-xs text-muted-foreground"><MailOpen className="size-3" /> Open rate</dt>
+          <dt className="flex items-center gap-1 text-xs text-muted-foreground">{listing.channel_type === "Newsletter" ? <MailOpen className="size-3" /> : <Heart className="size-3" />} {rateLabel(listing.channel_type)}</dt>
           <dd className="mt-1 font-semibold">{listing.avg_open_rate != null ? `${listing.avg_open_rate}%` : "—"}</dd>
         </div>
       </dl>

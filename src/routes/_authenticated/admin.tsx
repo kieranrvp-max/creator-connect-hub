@@ -10,6 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatGBP } from "@/lib/marketplace";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { STANDARD_FEE_PCT, discountFromFeeRate, feeRateFromDiscount, promoSplit } from "@/lib/promo-math";
 import { ukDayBefore, ukMidnightAfter } from "@/lib/uk-time";
 import { adminRefundApplication, adminRefundBooking, adminReleaseApplication } from "@/utils/admin.functions";
 
@@ -31,7 +35,47 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 type Code = { code: string; fee_rate: number; max_uses: number | null; active: boolean; expires_at: string | null; referrer_id: string | null; referral_rate: number };
 type Form = { code: string; fee: string; unlimited: boolean; maxUses: string; expiry: string; referrer: string; referralPct: string; active: boolean };
-const blank: Form = { code: "", fee: "5", unlimited: false, maxUses: "10", expiry: "", referrer: "", referralPct: "0", active: true };
+const blank: Form = { code: "", fee: "5", unlimited: false, maxUses: "10", expiry: "", referrer: "", referralPct: "2.5", active: true };
+
+type DirectoryPerson = { id: string; full_name: string | null; company_or_brand_name: string | null; user_type: string; email: string | null };
+
+function ReferrerPicker({ people, value, onChange }: { people: DirectoryPerson[]; value: string; onChange: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const label = (p: DirectoryPerson) => p.company_or_brand_name || p.full_name || p.email || "Unnamed";
+  const current = people.find((p) => p.id === value);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button type="button" variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between font-normal" data-testid="referrer-picker">
+          <span className="truncate">{current ? label(current) : "No referrer"}</span>
+          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] min-w-72 p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search name or email…" />
+          <CommandList>
+            <CommandEmpty>No users found.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem value="__none no referrer" onSelect={() => { onChange(""); setOpen(false); }}>
+                <Check className={`mr-2 size-4 ${value ? "opacity-0" : "opacity-100"}`} />No referrer
+              </CommandItem>
+              {people.map((p) => (
+                <CommandItem key={p.id} value={`${p.id} ${p.full_name ?? ""} ${p.company_or_brand_name ?? ""} ${p.email ?? ""}`} onSelect={() => { onChange(p.id); setOpen(false); }}>
+                  <Check className={`mr-2 size-4 shrink-0 ${value === p.id ? "opacity-100" : "opacity-0"}`} />
+                  <div className="min-w-0">
+                    <p className="truncate">{label(p)} <span className="text-xs text-muted-foreground">({p.user_type === "creator" ? "Creator" : "Brand"})</span></p>
+                    {p.email && <p className="truncate text-xs text-muted-foreground">{p.email}</p>}
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function Admin() {
   const isAdmin = useIsAdmin();
@@ -325,17 +369,20 @@ function Promo() {
   });
   const people = useQuery({
     queryKey: ["admin-people"],
-    queryFn: async () => (await supabase.from("profiles").select("id, full_name, company_or_brand_name, user_type")).data ?? [],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_user_directory");
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   const save = useMutation({
     mutationFn: async (f: Form) => {
       const code = f.code.trim().toUpperCase();
       if (!/^[A-Z0-9_-]{3,20}$/.test(code)) throw new Error("Code must be 3–20 letters or numbers");
-      const fee = Number(f.fee) / 100;
-      if (!(fee >= 0 && fee <= 0.15)) throw new Error("Commission must be between 0% and 15%");
+      const fee = feeRateFromDiscount(Number(f.fee));
       const ref = Number(f.referralPct) / 100;
-      if (!(ref >= 0 && ref <= fee)) throw new Error("Referral share can't exceed the commission");
+      if (!(ref >= 0 && ref <= fee)) throw new Error("Referral share can't exceed the fee charged");
       const max = f.unlimited ? null : Math.floor(Number(f.maxUses));
       if (max !== null && !(max > 0)) throw new Error("Usage limit must be at least 1");
       const row = {
@@ -363,33 +410,43 @@ function Promo() {
 
   const name = (id: string | null) => {
     const p = people.data?.find((x) => x.id === id);
-    return p ? (p.company_or_brand_name || p.full_name || "Unnamed") : "—";
+    return p ? (p.company_or_brand_name || p.full_name || p.email || "Unnamed") : "—";
   };
   const set = (k: keyof Form, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
+  const split = (() => {
+    try { return promoSplit(Number(form.fee), Number(form.referralPct) || 0); } catch { return null; }
+  })();
 
   return (
     <div className="mt-4">
       <p className="text-sm text-muted-foreground">Create, edit or switch off promo and referral codes. Expiry ends at midnight UK time.</p>
       <form className="mt-4 grid gap-4 rounded-xl border bg-card p-6 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); save.mutate(form); }}>
         <div className="space-y-2"><Label htmlFor="code">Code</Label><Input id="code" value={form.code} disabled={editing} onChange={(e) => set("code", e.target.value)} placeholder="BAKE5" maxLength={20} /></div>
-        <div className="space-y-2"><Label htmlFor="fee">Commission charged (%)</Label><Input id="fee" type="number" min={0} max={15} step="0.5" value={form.fee} onChange={(e) => set("fee", e.target.value)} /><p className="text-xs text-muted-foreground">Standard is 15%. 5% means a 10-point discount.</p></div>
+        <div className="space-y-2"><Label htmlFor="fee">Commission Discount (%)</Label><Input id="fee" type="number" min={0} max={STANDARD_FEE_PCT} step="0.5" value={form.fee} onChange={(e) => set("fee", e.target.value)} /><p className="text-xs text-muted-foreground">Taken off the standard {STANDARD_FEE_PCT}% fee. 5 means a 10% fee.</p></div>
         <div className="space-y-2">
           <Label htmlFor="max">Usage limit</Label>
           <div className="flex items-center gap-3"><Input id="max" type="number" min={1} value={form.maxUses} disabled={form.unlimited} onChange={(e) => set("maxUses", e.target.value)} /><label className="flex shrink-0 items-center gap-2 text-sm"><Switch checked={form.unlimited} onCheckedChange={(v) => set("unlimited", v)} />Unlimited</label></div>
         </div>
         <div className="space-y-2"><Label htmlFor="exp">Last day valid (optional)</Label><Input id="exp" type="date" value={form.expiry} onChange={(e) => set("expiry", e.target.value)} /></div>
         <div className="space-y-2">
-          <Label htmlFor="ref">Referrer (optional)</Label>
-          <select id="ref" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={form.referrer} onChange={(e) => set("referrer", e.target.value)}>
-            <option value="">No referrer</option>
-            {people.data?.map((p) => <option key={p.id} value={p.id}>{p.company_or_brand_name || p.full_name || "Unnamed"} ({p.user_type === "creator" ? "Creator" : "Brand"})</option>)}
-          </select>
+          <Label>Referrer (optional)</Label>
+          <ReferrerPicker people={people.data ?? []} value={form.referrer} onChange={(v) => set("referrer", v)} />
         </div>
-        <div className="space-y-2"><Label htmlFor="rp">Referrer earns (% of booking)</Label><Input id="rp" type="number" min={0} max={15} step="0.5" value={form.referralPct} onChange={(e) => set("referralPct", e.target.value)} /></div>
+        <div className="space-y-2"><Label htmlFor="rp">Referrer earns (% of booking)</Label><Input id="rp" type="number" min={0} max={STANDARD_FEE_PCT} step="0.5" value={form.referralPct} onChange={(e) => set("referralPct", e.target.value)} /></div>
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm sm:col-span-2" aria-live="polite" data-testid="promo-split-preview">
+          {split ? (
+            <ul className="space-y-1">
+              <li><span className="font-semibold">User charged fee: {split.charged}%</span> <span className="text-muted-foreground">({STANDARD_FEE_PCT}% standard − {Number(form.fee) || 0}% discount)</span></li>
+              <li><span className="font-semibold">Referrer payout: {split.referrer}%</span> <span className="text-muted-foreground">of booking{form.referrer ? "" : " (pick a referrer to apply)"}</span></li>
+              <li><span className="font-semibold">Platform net revenue: {form.referrer ? split.platform : split.charged}%</span> <span className="text-muted-foreground">before Stripe card fees</span></li>
+              <li className="text-muted-foreground">Creator receives {split.creator}%. On a £100 booking: creator {formatGBP(split.creator)}, referrer {formatGBP(form.referrer ? split.referrer : 0)}, Creator Connect {formatGBP(form.referrer ? split.platform : split.charged)}.</li>
+            </ul>
+          ) : <p className="text-destructive">Discount must be 0–{STANDARD_FEE_PCT}% and the referrer share can't be more than the fee charged.</p>}
+        </div>
         <label className="flex items-center gap-2 text-sm"><Switch checked={form.active} onCheckedChange={(v) => set("active", v)} />Active</label>
         <div className="flex gap-2 sm:justify-end">
           {editing && <Button type="button" variant="ghost" onClick={() => { setForm(blank); setEditing(false); }}>Cancel</Button>}
-          <Button type="submit" disabled={save.isPending}>{editing ? "Save changes" : "Create code"}</Button>
+          <Button type="submit" disabled={save.isPending || !split}>{editing ? "Save changes" : "Create code"}</Button>
         </div>
       </form>
 
@@ -405,14 +462,14 @@ function Promo() {
               return (
                 <tr key={c.code} className="border-t">
                   <td className="p-3 font-mono font-semibold">{c.code}</td>
-                  <td className="p-3">{Math.round(c.fee_rate * 1000) / 10}%</td>
+                  <td className="whitespace-nowrap p-3">{Math.round(c.fee_rate * 1000) / 10}% <span className="text-xs text-muted-foreground">(−{discountFromFeeRate(c.fee_rate)}%)</span></td>
                   <td className="p-3">{u?.uses ?? 0} / {c.max_uses ?? "∞"}</td>
                   <td className="p-3">{c.expires_at ? `End of ${ukDayBefore(c.expires_at)}` : "Never"}</td>
                   <td className="p-3">{name(c.referrer_id)}</td>
                   <td className="p-3">{formatGBP(Number(u?.referral_earnings ?? 0))}</td>
                   <td className="p-3">{expired ? "Expired" : c.active ? "Active" : "Off"}</td>
                   <td className="space-x-1 whitespace-nowrap p-3 text-right">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditing(true); setForm({ code: c.code, fee: String(c.fee_rate * 100), unlimited: c.max_uses === null, maxUses: String(c.max_uses ?? 10), expiry: c.expires_at ? ukDayBefore(c.expires_at) : "", referrer: c.referrer_id ?? "", referralPct: String(c.referral_rate * 100), active: c.active }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Edit</Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setEditing(true); setForm({ code: c.code, fee: String(discountFromFeeRate(c.fee_rate)), unlimited: c.max_uses === null, maxUses: String(c.max_uses ?? 10), expiry: c.expires_at ? ukDayBefore(c.expires_at) : "", referrer: c.referrer_id ?? "", referralPct: String(Math.round(c.referral_rate * 10000) / 100), active: c.active }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Edit</Button>
                     <Button size="sm" variant="outline" onClick={() => toggle.mutate(c)}>{c.active ? "Disable" : "Enable"}</Button>
                   </td>
                 </tr>
