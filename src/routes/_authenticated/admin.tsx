@@ -325,17 +325,20 @@ function Promo() {
   });
   const people = useQuery({
     queryKey: ["admin-people"],
-    queryFn: async () => (await supabase.from("profiles").select("id, full_name, company_or_brand_name, user_type")).data ?? [],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_user_directory");
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   const save = useMutation({
     mutationFn: async (f: Form) => {
       const code = f.code.trim().toUpperCase();
       if (!/^[A-Z0-9_-]{3,20}$/.test(code)) throw new Error("Code must be 3–20 letters or numbers");
-      const fee = Number(f.fee) / 100;
-      if (!(fee >= 0 && fee <= 0.15)) throw new Error("Commission must be between 0% and 15%");
+      const fee = feeRateFromDiscount(Number(f.fee));
       const ref = Number(f.referralPct) / 100;
-      if (!(ref >= 0 && ref <= fee)) throw new Error("Referral share can't exceed the commission");
+      if (!(ref >= 0 && ref <= fee)) throw new Error("Referral share can't exceed the fee charged");
       const max = f.unlimited ? null : Math.floor(Number(f.maxUses));
       if (max !== null && !(max > 0)) throw new Error("Usage limit must be at least 1");
       const row = {
@@ -363,33 +366,43 @@ function Promo() {
 
   const name = (id: string | null) => {
     const p = people.data?.find((x) => x.id === id);
-    return p ? (p.company_or_brand_name || p.full_name || "Unnamed") : "—";
+    return p ? (p.company_or_brand_name || p.full_name || p.email || "Unnamed") : "—";
   };
   const set = (k: keyof Form, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
+  const split = (() => {
+    try { return promoSplit(Number(form.fee), Number(form.referralPct) || 0); } catch { return null; }
+  })();
 
   return (
     <div className="mt-4">
       <p className="text-sm text-muted-foreground">Create, edit or switch off promo and referral codes. Expiry ends at midnight UK time.</p>
       <form className="mt-4 grid gap-4 rounded-xl border bg-card p-6 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); save.mutate(form); }}>
         <div className="space-y-2"><Label htmlFor="code">Code</Label><Input id="code" value={form.code} disabled={editing} onChange={(e) => set("code", e.target.value)} placeholder="BAKE5" maxLength={20} /></div>
-        <div className="space-y-2"><Label htmlFor="fee">Commission charged (%)</Label><Input id="fee" type="number" min={0} max={15} step="0.5" value={form.fee} onChange={(e) => set("fee", e.target.value)} /><p className="text-xs text-muted-foreground">Standard is 15%. 5% means a 10-point discount.</p></div>
+        <div className="space-y-2"><Label htmlFor="fee">Commission Discount (%)</Label><Input id="fee" type="number" min={0} max={STANDARD_FEE_PCT} step="0.5" value={form.fee} onChange={(e) => set("fee", e.target.value)} /><p className="text-xs text-muted-foreground">Taken off the standard {STANDARD_FEE_PCT}% fee. 5 means a 10% fee.</p></div>
         <div className="space-y-2">
           <Label htmlFor="max">Usage limit</Label>
           <div className="flex items-center gap-3"><Input id="max" type="number" min={1} value={form.maxUses} disabled={form.unlimited} onChange={(e) => set("maxUses", e.target.value)} /><label className="flex shrink-0 items-center gap-2 text-sm"><Switch checked={form.unlimited} onCheckedChange={(v) => set("unlimited", v)} />Unlimited</label></div>
         </div>
         <div className="space-y-2"><Label htmlFor="exp">Last day valid (optional)</Label><Input id="exp" type="date" value={form.expiry} onChange={(e) => set("expiry", e.target.value)} /></div>
         <div className="space-y-2">
-          <Label htmlFor="ref">Referrer (optional)</Label>
-          <select id="ref" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={form.referrer} onChange={(e) => set("referrer", e.target.value)}>
-            <option value="">No referrer</option>
-            {people.data?.map((p) => <option key={p.id} value={p.id}>{p.company_or_brand_name || p.full_name || "Unnamed"} ({p.user_type === "creator" ? "Creator" : "Brand"})</option>)}
-          </select>
+          <Label>Referrer (optional)</Label>
+          <ReferrerPicker people={people.data ?? []} value={form.referrer} onChange={(v) => set("referrer", v)} />
         </div>
-        <div className="space-y-2"><Label htmlFor="rp">Referrer earns (% of booking)</Label><Input id="rp" type="number" min={0} max={15} step="0.5" value={form.referralPct} onChange={(e) => set("referralPct", e.target.value)} /></div>
+        <div className="space-y-2"><Label htmlFor="rp">Referrer earns (% of booking)</Label><Input id="rp" type="number" min={0} max={STANDARD_FEE_PCT} step="0.5" value={form.referralPct} onChange={(e) => set("referralPct", e.target.value)} /></div>
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm sm:col-span-2" aria-live="polite" data-testid="promo-split-preview">
+          {split ? (
+            <ul className="space-y-1">
+              <li><span className="font-semibold">User charged fee: {split.charged}%</span> <span className="text-muted-foreground">({STANDARD_FEE_PCT}% standard − {Number(form.fee) || 0}% discount)</span></li>
+              <li><span className="font-semibold">Referrer payout: {split.referrer}%</span> <span className="text-muted-foreground">of booking{form.referrer ? "" : " (pick a referrer to apply)"}</span></li>
+              <li><span className="font-semibold">Platform net revenue: {form.referrer ? split.platform : split.charged}%</span> <span className="text-muted-foreground">before Stripe card fees</span></li>
+              <li className="text-muted-foreground">Creator receives {split.creator}%. On a £100 booking: creator {formatGBP(split.creator)}, referrer {formatGBP(form.referrer ? split.referrer : 0)}, Creator Connect {formatGBP(form.referrer ? split.platform : split.charged)}.</li>
+            </ul>
+          ) : <p className="text-destructive">Discount must be 0–{STANDARD_FEE_PCT}% and the referrer share can't be more than the fee charged.</p>}
+        </div>
         <label className="flex items-center gap-2 text-sm"><Switch checked={form.active} onCheckedChange={(v) => set("active", v)} />Active</label>
         <div className="flex gap-2 sm:justify-end">
           {editing && <Button type="button" variant="ghost" onClick={() => { setForm(blank); setEditing(false); }}>Cancel</Button>}
-          <Button type="submit" disabled={save.isPending}>{editing ? "Save changes" : "Create code"}</Button>
+          <Button type="submit" disabled={save.isPending || !split}>{editing ? "Save changes" : "Create code"}</Button>
         </div>
       </form>
 
