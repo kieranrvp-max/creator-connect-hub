@@ -15,6 +15,7 @@ import { Camera } from "lucide-react";
 import { profileQuery } from "@/lib/marketplace";
 import { uploadAvatar, useAvatarUrl } from "@/lib/avatar";
 import { useAuth } from "@/hooks/use-auth";
+import { ReferralEarnings } from "@/components/referral-earnings";
 
 export const Route = createFileRoute("/_authenticated/account")({
   staticData: { sitemap: false },
@@ -170,6 +171,7 @@ function Account() {
         </div>
         <Button type="submit" disabled={save.isPending}>Save changes</Button>
       </form>
+      <ReferralEarnings userId={user.id} />
     </main>
   );
 }
