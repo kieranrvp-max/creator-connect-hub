@@ -20,7 +20,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { DealTracker } from "@/components/deal-tracker";
 import { DeleteListingButton } from "@/components/delete-listing-button";
 import {
-  CHANNELS, NICHES, creatorBookingsQuery, myApplicationsQuery, type CreatorApplication, formatDate, formatGBP, myListingsQuery, profileQuery,
+  CHANNELS, NICHES, creatorBookingsQuery, myApplicationsQuery, type CreatorApplication, formatDate, formatGBP, myListingsQuery, profileQuery, rateLabel,
   type BookingStatus, type ChannelType, type CreatorBooking,
 } from "@/lib/marketplace";
 import { untyped } from "@/lib/db-untyped";
