@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandCampaigns } from "@/components/brand-campaigns";
 
-export const BRIEFS_RESERVED_MSG = "Brief creation is reserved for Brand accounts.";
+const BRIEFS_RESERVED_MSG = "Brief creation is reserved for Brand accounts.";
 
 export const Route = createFileRoute("/_authenticated/briefs/new")({
   staticData: { sitemap: false },
