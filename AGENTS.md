@@ -19,3 +19,5 @@
 
 - Authentication emails use the scaffolded managed handler under `/lovable/email/auth/`; keep all six actions and shared email-safe styles so branding stays consistent without custom delivery infrastructure.
 - Admin rights live in `user_roles` (checked with `has_role`); the UI hint is `useIsAdmin`, but database policies enforce every admin action. Commission validation accepts 0–15% so admin promo codes work without code changes.
+- `listings.avg_open_rate` stores open rate for Newsletter listings and engagement rate for every other channel; label it with `rateLabel(channel)` so the UI never shows "open rate" for social channels.
+- Referral earnings are a ledger computed from paid bookings × `promo_codes.referral_rate` (`admin_promo_usage`, `my_referral_earnings`); there is no automatic Stripe transfer to referrers, because destination charges allow only one connected account per payment.

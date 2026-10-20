@@ -20,3 +20,9 @@
 - [ ] Stage 3: Profile hub + public profiles
 - [ ] Stage 4: ratings & reliability
 - [ ] Stage 5: location filter (waiting on rest of user's document)
+
+## Role gating, legal pages, promo discount (Oct 2026)
+- [x] Brief creation for Brand accounts only (Explore card hidden for creators, /briefs/new guarded)
+- [x] Open rate only for Newsletter; Engagement rate for other channels
+- [x] /privacy and /terms pages + footer links
+- [x] Promo form: Commission Discount %, live split preview, searchable referrer, 2.5% referrer ledger + Account balance card
