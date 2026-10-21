@@ -1,3 +1,5 @@
+import { useServerFn } from "@tanstack/react-start";
+import { notifyPitchSubmitted } from "@/utils/notifications.functions";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -132,15 +134,17 @@ function ApplyForm({ opportunityId, userId }: { opportunityId: string; userId: s
   const qc = useQueryClient();
   const [pitch, setPitch] = useState("");
   const [link, setLink] = useState("");
+  const notifyPitch = useServerFn(notifyPitchSubmitted);
   const apply = useMutation({
     mutationFn: async () => {
-      const { error } = await untyped(supabase).from("opportunity_applications").insert({
+      const { data, error } = await untyped(supabase).from("opportunity_applications").insert({
         opportunity_id: opportunityId,
         creator_id: userId,
         pitch: pitch.trim(),
         portfolio_link: link.trim() || null,
-      });
+      }).select("id").single();
       if (error) throw error;
+      notifyPitch({ data: { applicationId: data.id } }).catch(() => {});
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["applications"] }); toast.success("Application sent to the brand"); },
     onError: (e: Error) => toast.error(e.message),

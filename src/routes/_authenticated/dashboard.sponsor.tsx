@@ -1,3 +1,4 @@
+import { BrandCampaigns } from "@/components/brand-campaigns";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -107,6 +108,10 @@ function SponsorDashboard() {
           </Table>
         )}
       </div>
+      <section id="pitches" className="mt-12 scroll-mt-24">
+        <h2 className="mb-2 text-2xl font-semibold">Campaign briefs &amp; pitches</h2>
+        <BrandCampaigns userId={user.id} />
+      </section>
       <Dialog open={!!payId} onOpenChange={(o) => { if (!o) { setPayId(null); qc.invalidateQueries({ queryKey: ["bookings"] }); } }}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader><DialogTitle>Finish payment</DialogTitle></DialogHeader>
