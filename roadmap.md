@@ -10,7 +10,8 @@
 - [x] Audit + gap fixes: one booking/date, 48h auto-refund, sponsor cancel, decline refunds, expired checkouts, password reset, account page
 - [ ] Creator payouts in test mode — blocked: owner must enable Connect in their own Stripe account and creators must reconnect payouts
 - [ ] Listing edit/delete UI (not yet requested)
-- [ ] Email notifications (user: not now)
+- [x] Email notifications: creator on paid booking/funded brief, brand on new pitch/delivered work, referrer on code use
+- [x] Legal pages support email → kieran@creatorconnecthub.co.uk
 
 - [ ] Branded authentication emails and notify.creatorconnecthub.co.uk sender setup; sending awaits DNS verification and publishing.
 
