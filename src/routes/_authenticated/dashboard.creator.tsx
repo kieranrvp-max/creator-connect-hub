@@ -1,3 +1,4 @@
+import { notifyDeliverable } from "@/utils/notifications.functions";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -85,10 +86,12 @@ function CreatorView({ userId, name }: { userId: string; name: string | null }) 
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const notifyDelivered = useServerFn(notifyDeliverable);
   const update = useMutation({
     mutationFn: async ({ id, ...patch }: { id: string; status: BookingStatus; proof_url?: string }) => {
       const { error } = await supabase.from("bookings").update(patch).eq("id", id);
       if (error) throw error;
+      if (patch.status === "published") notifyDelivered({ data: { kind: "booking", id } }).catch(() => {});
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
     onError: (e: Error) => toast.error(e.message),
@@ -364,10 +367,12 @@ function MyApplications({ userId }: { userId: string }) {
 
 function ApplicationRow({ a }: { a: CreatorApplication }) {
   const qc = useQueryClient();
+  const notifyDelivered = useServerFn(notifyDeliverable);
   const deliver = useMutation({
     mutationFn: async (url: string) => {
       const { error } = await untyped(supabase).from("opportunity_applications").update({ status: "delivered", proof_url: url }).eq("id", a.id);
       if (error) throw error;
+      notifyDelivered({ data: { kind: "application", id: a.id } }).catch(() => {});
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["applications"] }),
     onError: (e: Error) => toast.error(e.message),
