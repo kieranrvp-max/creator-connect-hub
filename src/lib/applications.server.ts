@@ -4,7 +4,7 @@ import { untyped } from "@/lib/db-untyped";
 
 /** Escrow funded: brand paid upfront, money held on the platform until release. Idempotent. */
 export async function markApplicationPaid(applicationId: string, paymentIntentId: string | null, env: StripeEnv) {
-  await untyped(supabaseAdmin)
+  const { data: updated } = await untyped(supabaseAdmin)
     .from("opportunity_applications")
     .update({
       payment_status: "paid",
@@ -14,7 +14,12 @@ export async function markApplicationPaid(applicationId: string, paymentIntentId
       ...(paymentIntentId && { stripe_payment_intent_id: paymentIntentId }),
     })
     .eq("id", applicationId)
-    .eq("payment_status", "unpaid");
+    .eq("payment_status", "unpaid")
+    .select("id")
+    .maybeSingle();
+  if (!updated) return;
+  const { notifyApplicationFunded } = await import("@/lib/notifications.server");
+  await notifyApplicationFunded(applicationId);
 }
 
 /** Releases the creator's share (total minus commission) from escrow to their Connect account. */

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export const LEGAL_EMAIL = "support@creatorconnecthub.co.uk";
+export const LEGAL_EMAIL = "kieran@creatorconnecthub.co.uk";
 export const LEGAL_UPDATED = "20 October 2026";
 
 export function LegalPage({ title, intro, children }: { title: string; intro: string; children: ReactNode }) {

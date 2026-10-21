@@ -44,7 +44,12 @@ export async function markBookingPaid(bookingId: string, paymentIntentId: string
     _date: updated.preferred_date,
     _exclude: updated.id,
   });
-  if (clash) await refundAndClose(updated.id);
+  if (clash) {
+    await refundAndClose(updated.id);
+    return;
+  }
+  const { notifyBookingPaid } = await import("@/lib/notifications.server");
+  await notifyBookingPaid(updated.id);
 }
 
 export async function markBookingRefunded(paymentIntentId: string) {
