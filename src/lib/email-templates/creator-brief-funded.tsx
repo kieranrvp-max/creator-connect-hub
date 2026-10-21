@@ -30,7 +30,7 @@ const CreatorBriefFunded = ({ briefTitle, brandName, amount, creatorShare }: Pro
 
 export const template = {
   component: CreatorBriefFunded,
-  subject: (d: Record<string, any>) => `Pitch accepted: ${d.briefTitle || 'campaign brief'}`,
+  subject: (d: Record<string, any>) => `Pitch accepted: ${d["briefTitle"] || 'campaign brief'}`,
   displayName: 'Creator – brief funded',
   previewData: { briefTitle: 'Autumn coffee launch', brandName: 'Acme Coffee', amount: 200, creatorShare: 170 },
 } satisfies TemplateEntry

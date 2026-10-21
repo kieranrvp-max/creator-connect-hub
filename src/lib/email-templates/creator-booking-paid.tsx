@@ -32,7 +32,7 @@ const CreatorBookingPaid = ({ listingTitle, brandName, amount, creatorShare, lau
 
 export const template = {
   component: CreatorBookingPaid,
-  subject: (d: Record<string, any>) => `New paid booking: ${d.listingTitle || 'your listing'}`,
+  subject: (d: Record<string, any>) => `New paid booking: ${d["listingTitle"] || 'your listing'}`,
   displayName: 'Creator – new paid booking',
   previewData: { listingTitle: 'Weekly Tech Newsletter', brandName: 'Acme Coffee', amount: 100, creatorShare: 85, launchDate: '3 Nov 2026' },
 } satisfies TemplateEntry

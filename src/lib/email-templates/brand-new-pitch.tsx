@@ -31,7 +31,7 @@ const BrandNewPitch = ({ briefTitle, creatorName, pitchExcerpt }: Props) => (
 
 export const template = {
   component: BrandNewPitch,
-  subject: (d: Record<string, any>) => `New pitch for ${d.briefTitle || 'your brief'}`,
+  subject: (d: Record<string, any>) => `New pitch for ${d["briefTitle"] || 'your brief'}`,
   displayName: 'Brand – new pitch',
   previewData: { briefTitle: 'Autumn coffee launch', creatorName: 'Sam Rivers', pitchExcerpt: 'My audience of 8k home baristas would love this…' },
 } satisfies TemplateEntry

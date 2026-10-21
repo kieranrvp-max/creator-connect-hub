@@ -29,7 +29,7 @@ const ReferrerCommission = ({ code, bookingAmount, ratePercent, earned }: Props)
 
 export const template = {
   component: ReferrerCommission,
-  subject: (d: Record<string, any>) => `Your code ${d.code || ''} earned you ${gbp(d.earned)}`,
+  subject: (d: Record<string, any>) => `Your code ${d["code"] || ''} earned you ${gbp(d["earned"])}`,
   displayName: 'Referrer – code used',
   previewData: { code: 'SAMSPICK', bookingAmount: 100, ratePercent: '2.5', earned: 2.5 },
 } satisfies TemplateEntry

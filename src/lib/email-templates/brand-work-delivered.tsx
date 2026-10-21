@@ -34,7 +34,7 @@ const BrandWorkDelivered = ({ title, creatorName, proofUrl, isBrief }: Props) =>
 
 export const template = {
   component: BrandWorkDelivered,
-  subject: (d: Record<string, any>) => `Delivered: ${d.title || 'your sponsorship'}`,
+  subject: (d: Record<string, any>) => `Delivered: ${d["title"] || 'your sponsorship'}`,
   displayName: 'Brand – work delivered',
   previewData: { title: 'Autumn coffee launch', creatorName: 'Sam Rivers', proofUrl: 'https://instagram.com/p/example', isBrief: true },
 } satisfies TemplateEntry
